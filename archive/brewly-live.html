@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Brewly — Coffee Taste Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#FAF7F2;--cream-dk:#F2EDE3;--esp:#2C1810;--esp-mid:#4A2C1E;
+  --brn:#8B6355;--brn-lt:#C4A882;--sage:#7A8C78;--sage-lt:#B2C4B0;--sage-pl:#E8F0E6;
+  --wht:#FFFFFF;--bdr:rgba(44,24,16,.10);--bdr-md:rgba(44,24,16,.18);
+  --txt-m:#9A8070;--txt-md:#6B4E3D;
+  --sh-sm:0 2px 8px rgba(44,24,16,.07);--sh-md:0 4px 20px rgba(44,24,16,.10);--sh-lg:0 8px 40px rgba(44,24,16,.14);
+  --r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px
+}
+html,body{height:100%;background:#1A0F0A;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
+#root{height:100%;display:flex;align-items:center;justify-content:center}
+.shell{width:100%;max-width:430px;height:100vh;max-height:900px;background:var(--cream);position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(0,0,0,.5)}
+@media(max-width:430px){.shell{max-height:100vh}}
+.scr{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.scr::-webkit-scrollbar{display:none}
+.bnav{display:flex;background:var(--wht);border-top:.5px solid var(--bdr);padding:8px 0 max(env(safe-area-inset-bottom),8px);flex-shrink:0;z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--txt-m);transition:color .2s;letter-spacing:.3px}
+.nb.on{color:var(--esp)}.nb svg{width:22px;height:22px}
+.nd{width:4px;height:4px;border-radius:2px;background:var(--brn);opacity:0;transition:opacity .2s}.nb.on .nd{opacity:1}
+.pf{font-family:'Playfair Display',serif}.pfi{font-family:'Playfair Display',serif;font-style:italic}
+.btn{width:100%;padding:15px;border-radius:var(--r-md);background:var(--esp);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:opacity .2s;letter-spacing:.2px}
+.btn:hover{opacity:.88}.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sage{background:var(--sage)}.btn.brn{background:var(--brn)}.btn.out{background:transparent;border:.5px solid var(--bdr-md);color:var(--txt-md)}
+.btn.out:hover{background:var(--cream-dk)}
+.card{background:var(--wht);border-radius:var(--r-lg);border:.5px solid var(--bdr);box-shadow:var(--sh-sm);overflow:hidden}
+.cp{padding:16px 18px}
+.fl{display:block;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--txt-m);margin-bottom:7px}
+input,textarea,select{width:100%;background:var(--cream);border:.5px solid var(--bdr);border-radius:var(--r-sm);padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--esp);outline:none;transition:border-color .2s;margin-bottom:14px;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus,select:focus{border-color:var(--brn)}
+input::placeholder,textarea::placeholder{color:var(--txt-m)}
+textarea{resize:vertical;line-height:1.5}
+.sw{margin-bottom:20px}
+.st{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.sn{font-size:13px;font-weight:500;color:var(--esp)}.sv{font-size:13px;color:var(--brn);font-weight:500}
+.se{display:flex;justify-content:space-between;margin-top:4px}
+.sec{font-size:10px;color:var(--txt-m)}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:var(--bdr-md);outline:none;cursor:pointer;padding:0;margin-bottom:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--esp);cursor:pointer;box-shadow:var(--sh-sm)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--esp);cursor:pointer;border:none}
+.chip{display:inline-block;padding:6px 13px;border-radius:20px;font-size:12px;border:.5px solid var(--bdr);background:var(--cream);color:var(--esp);cursor:pointer;transition:all .2s;margin:3px}
+.chip.on{background:var(--esp);color:#fff;border-color:var(--esp)}
+.chip.sage{background:var(--sage-pl);color:var(--sage);border-color:rgba(122,140,120,.3)}
+.chip.brn{background:#FDF5ED;color:var(--brn);border-color:rgba(139,99,85,.25)}
+.chip.red{background:#FDF0ED;color:#9B3A22;border-color:rgba(155,58,34,.2)}
+.bdg{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.bdg.sage{background:var(--sage);color:#fff}.bdg.esp{background:var(--esp);color:#fff}
+.sl{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--txt-m);margin-bottom:10px}
+.star{font-size:26px;cursor:pointer;color:rgba(44,24,16,.12);transition:color .1s}.star.on{color:var(--brn)}
+.toast{position:absolute;bottom:82px;left:50%;transform:translateX(-50%);background:var(--esp);color:#fff;padding:12px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:9999;box-shadow:var(--sh-lg);animation:tin .3s ease;pointer-events:none;white-space:nowrap}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.mo{position:absolute;inset:0;background:rgba(20,10,6,.6);z-index:200;display:flex;align-items:flex-end}
+.ms{background:var(--cream);border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-height:88%;overflow-y:auto;padding:20px;scrollbar-width:none}
+.ms::-webkit-scrollbar{display:none}
+.mh{width:40px;height:4px;background:var(--bdr-md);border-radius:2px;margin:0 auto 20px}
+.ob{background:var(--esp);min-height:100%;display:flex;flex-direction:column;padding:36px 28px 28px;color:#fff}
+.opp{display:flex;gap:5px;margin-bottom:36px}
+.opb{height:3px;flex:1;background:rgba(255,255,255,.12);border-radius:2px;transition:background .3s}
+.opb.dn{background:var(--sage)}
+.oh{font-family:'Playfair Display',serif;font-size:28px;line-height:1.28;margin-bottom:10px}
+.os{font-size:14px;color:rgba(255,255,255,.5);line-height:1.65;margin-bottom:28px}
+.oop{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:var(--r-md);padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:13px;font-size:14px;color:#fff;transition:all .2s}
+.oop:hover{background:rgba(255,255,255,.09)}.oop.on{background:rgba(122,140,120,.25);border-color:var(--sage)}
+.ooi{font-size:20px;width:28px;text-align:center}
+.otr{background:rgba(122,140,120,.12);border-left:2px solid var(--sage);border-radius:0 8px 8px 0;padding:12px 14px;margin:8px 0 20px;font-size:13px;color:rgba(255,255,255,.7);font-style:italic;line-height:1.55}
+.obtn{background:var(--brn);color:#fff;border:none;border-radius:var(--r-md);padding:15px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;width:100%;margin-top:auto;transition:opacity .2s}
+.obtn:hover{opacity:.88}
+.oskp{background:none;border:none;color:rgba(255,255,255,.3);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;padding:12px;text-align:center;width:100%}
+.pb{height:6px;background:var(--bdr);border-radius:3px;overflow:hidden}.pf2{height:100%;background:var(--sage);border-radius:3px;transition:width .4s ease}
+.fade{animation:fd .25s ease}
+@keyframes fd{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.bk{background:var(--cream-dk);border:.5px solid var(--bdr);border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.sep{height:.5px;background:var(--bdr);margin:8px 0}
+.tgl{width:44px;height:24px;border-radius:12px;background:var(--bdr-md);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tgl.on{background:var(--sage)}
+.tt{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl.on .tt{left:23px}
+#gmap{width:100%;height:100%}
+.maptip{position:absolute;bottom:10px;right:10px;background:rgba(250,247,242,.92);border-radius:8px;padding:5px 11px;font-size:11px;color:var(--esp);font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:var(--sh-sm)}
+.maplabel{position:absolute;top:10px;left:10px;background:rgba(44,24,16,.75);color:#fff;border-radius:8px;padding:4px 10px;font-size:10px}
+</style>
+</head>
+<body>
+<div id="root"><div class="shell" id="app"></div></div>
+
+<!-- ══════════════════ APP SCRIPT ══════════════════ -->
+<script>
+// ── STATE ─────────────────────────────────────────────────────
+var APP = {
+  apiKey: localStorage.getItem('brewly_gmaps_key') || '',
+  mapsLoaded: false,
+  mapsLoading: false,
+  userLat: null, userLng: null,
+  locating: false,
+  onboarded: !!localStorage.getItem('brewly_onboarded'),
+  user: JSON.parse(localStorage.getItem('brewly_user') || JSON.stringify({
+    name:'Alex', city:'Johannesburg', tier:'Flavour Explorer'
+  })),
+  tasteProfile: JSON.parse(localStorage.getItem('brewly_profile') || JSON.stringify({
+    acidity:7.8, body:4.2, sweetness:6.5, intensity:4.8, fruitiness:8.5
+  })),
+  logs: JSON.parse(localStorage.getItem('brewly_logs') || '[]'),
+  preferences: JSON.parse(localStorage.getItem('brewly_prefs') || JSON.stringify({
+    likes:['Bright acidity','Fruity','African origins','Light roasts','V60 / Filter'],
+    avoids:['Heavy bitterness','Dark roasts']
+  })),
+  beans: JSON.parse(localStorage.getItem('brewly_beans') || JSON.stringify([
+    {id:1, origin:'Ethiopia Yirgacheffe', process:'Washed', roast:'Light', roaster:'Rosetta', stock:'High', tasting:['Bergamot','Jasmine','Lemon'], active:true},
+    {id:2, origin:'Kenya Nyeri AA', process:'Washed', roast:'Light-Medium', roaster:'Father Coffee', stock:'Medium', tasting:['Blackcurrant','Tomato','Bright'], active:true},
+    {id:3, origin:'Colombia El Paraiso', process:'Natural', roast:'Medium', roaster:'Truth.', stock:'Low', tasting:['Blueberry','Chocolate','Caramel'], active:true},
+  ])),
+  savedCustomers: JSON.parse(localStorage.getItem('brewly_customers') || '[]'),
+  nearbyPlaces: [],
+  currentScreen: 'home',
+  selectedCafe: null,
+  logVisible: false,
+  logSuccess: false,
+  logData: null,
+  modal: null,
+  toast: null,
+  toastTimer: null,
+};
+
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function saveAll(){
+  save('brewly_user', APP.user);
+  save('brewly_profile', APP.tasteProfile);
+  save('brewly_logs', APP.logs);
+  save('brewly_prefs', APP.preferences);
+  save('brewly_beans', APP.beans);
+  save('brewly_customers', APP.savedCustomers);
+  localStorage.setItem('brewly_onboarded', '1');
+}
+
+// ── OPEN COFFEE DB ────────────────────────────────────────────
+var COFFEE_DB = [
+  {id:'eth1',name:'Ethiopia Yirgacheffe',region:'Yirgacheffe, Ethiopia',process:'Washed',roast:'Light',altitude:'1750–2200m',variety:'Heirloom',flavors:['Bergamot','Lemon','Jasmine','Peach'],acidity:8.5,body:3.5,sweetness:7,fruitiness:9,intensity:4,description:'Classic washed Ethiopian with stunning floral aromatics and citrus-forward brightness.',score:'92/100 · Coffee Review'},
+  {id:'ken1',name:'Kenya AA Nyeri',region:'Nyeri, Kenya',process:'Washed',roast:'Light-Medium',altitude:'1600–1800m',variety:'SL28, SL34',flavors:['Blackcurrant','Tomato','Brown sugar','Sparkling acidity'],acidity:9,body:5,sweetness:6,fruitiness:8.5,intensity:5.5,description:'Iconic Kenyan with distinctive wine-like fruit and intense brightness.',score:'90/100 · Community'},
+  {id:'col1',name:'Colombia Huila',region:'Huila, Colombia',process:'Washed',roast:'Medium',altitude:'1500–1900m',variety:'Caturra, Castillo',flavors:['Caramel','Red apple','Milk chocolate','Hazelnut'],acidity:6,body:6.5,sweetness:8,fruitiness:5,intensity:6,description:'Approachable Colombian with balanced sweetness and smooth, nutty finish.',score:'87/100 · Community'},
+  {id:'bra1',name:'Brazil Cerrado Natural',region:'Cerrado, Brazil',process:'Natural',roast:'Medium-Dark',altitude:'900–1150m',variety:'Catuai, Bourbon',flavors:['Dark chocolate','Peanut','Brown sugar','Raisin'],acidity:3,body:9,sweetness:8.5,fruitiness:3,intensity:8,description:'Full-bodied natural Brazilian ideal for espresso. Rich, sweet and chocolatey.',score:'84/100 · Community'},
+  {id:'eth2',name:'Ethiopia Guji Natural',region:'Guji, Ethiopia',process:'Natural',roast:'Light',altitude:'1900–2200m',variety:'Heirloom',flavors:['Blueberry','Strawberry','Chocolate','Wine-like'],acidity:7,body:6,sweetness:9,fruitiness:9.5,intensity:5,description:'Exotic natural-processed Ethiopian bursting with berry fruit and wine-like complexity.',score:'93/100 · Coffee Review'},
+  {id:'rwa1',name:'Rwanda Huye Mountain',region:'Huye, Rwanda',process:'Washed',roast:'Light',altitude:'1650–2000m',variety:'Red Bourbon',flavors:['Peach','Rose','Caramel','Orange zest'],acidity:7.5,body:4.5,sweetness:8,fruitiness:7.5,intensity:4.5,description:'Elegant Rwandan Red Bourbon with delicate florals, stone fruit and brilliant clarity.',score:'89/100 · Community'},
+];
+
+function matchScore(bean){
+  var p = APP.tasteProfile;
+  var diff = Math.abs(bean.acidity - p.acidity) + Math.abs(bean.body - p.body) +
+             Math.abs(bean.sweetness - p.sweetness) + Math.abs(bean.fruitiness - p.fruitiness) + Math.abs(bean.intensity - p.intensity);
+  return Math.round(100 - (diff / 5) * 5);
+}
+
+// ── MAPS INTEGRATION ─────────────────────────────────────────
+function loadGoogleMaps(key){
+  if(APP.mapsLoaded || APP.mapsLoading) return;
+  APP.mapsLoading = true;
+  var s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key='+key+'&libraries=places,geometry&callback=onMapsReady';
+  s.async = true; s.defer = true;
+  document.head.appendChild(s);
+}
+window.onMapsReady = function(){
+  APP.mapsLoaded = true;
+  APP.mapsLoading = false;
+  render();
+  toast('✓ Google Maps connected');
+};
+window.gm_authFailure = function(){
+  toast('⚠️ Invalid API key — check your Google Maps key');
+  APP.apiKey = '';
+  localStorage.removeItem('brewly_gmaps_key');
+  render();
+};
+
+function getLocation(cb){
+  if(!navigator.geolocation){ cb(null,'Geolocation not supported'); return; }
+  APP.locating = true; render();
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      APP.userLat = pos.coords.latitude;
+      APP.userLng = pos.coords.longitude;
+      APP.locating = false;
+      reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+      cb(pos.coords);
+    },
+    function(err){ APP.locating = false; cb(null, err.message); render(); },
+    {timeout:10000,enableHighAccuracy:true}
+  );
+}
+
+function reverseGeocode(lat,lng){
+  if(!APP.mapsLoaded) return;
+  var gc = new google.maps.Geocoder();
+  gc.geocode({location:{lat,lng}}, function(res,status){
+    if(status === 'OK' && res[0]){
+      var comp = res[0].address_components;
+      var city = (comp.find(c=>c.types.includes('locality')) || comp.find(c=>c.types.includes('sublocality')) || {}).long_name || 'Your location';
+      APP.user.city = city;
+      saveAll();
+      render();
+    }
+  });
+}
+
+function searchNearbyCafes(lat,lng,cb){
+  if(!APP.mapsLoaded){ cb([],'Maps not loaded'); return; }
+  var dummy = document.createElement('div');
+  var svc = new google.maps.places.PlacesService(dummy);
+  var req = {
+    location: new google.maps.LatLng(lat,lng),
+    radius: 3000,
+    keyword: 'specialty coffee cafe',
+    type: 'cafe',
+  };
+  svc.nearbySearch(req, function(results,status){
+    if(status === google.maps.places.PlacesServiceStatus.OK){
+      var places = results.slice(0,8).map(function(p){
+        return {
+          id: p.place_id,
+          name: p.name,
+          area: p.vicinity,
+          rating: p.rating || 4.0,
+          reviews: p.user_ratings_total || 0,
+          lat: p.geometry.location.lat(),
+          lng: p.geometry.location.lng(),
+          distance: calcDist(lat,lng,p.geometry.location.lat(),p.geometry.location.lng()),
+          fit: Math.round(70 + Math.random()*28),
+          open: p.opening_hours ? p.opening_hours.open_now : true,
+          place_id: p.place_id,
+          types: p.types || [],
+          emoji: '☕',
+          heroColor: '#2C1810',
+          fitReason: ['Specialty café','Near you','Community rated'],
+        };
+      });
+      places.sort(function(a,b){ return a.distance - b.distance; });
+      APP.nearbyPlaces = places;
+      cb(places);
+    } else {
+      cb([],'No results: '+status);
+    }
+  });
+}
+
+function getPlaceDetails(placeId, cb){
+  if(!APP.mapsLoaded){ cb(null); return; }
+  var dummy = document.createElement('div');
+  var svc = new google.maps.places.PlacesService(dummy);
+  svc.getDetails({
+    placeId: placeId,
+    fields: ['name','formatted_address','formatted_phone_number','opening_hours','website','url','photos','reviews','rating','price_level','types']
+  }, function(result, status){
+    if(status === google.maps.places.PlacesServiceStatus.OK){ cb(result); }
+    else{ cb(null); }
+  });
+}
+
+function calcDist(lat1,lng1,lat2,lng2){
+  if(APP.mapsLoaded && google.maps.geometry){
+    var m = google.maps.geometry.spherical.computeDistanceBetween(
+      new google.maps.LatLng(lat1,lng1), new google.maps.LatLng(lat2,lng2)
+    );
+    return (m/1000).toFixed(1);
+  }
+  var R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return (R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+}
+
+function openInGoogleMaps(cafe){
+  var url;
+  if(cafe.place_id){
+    url='https://www.google.com/maps/place/?q=place_id:'+cafe.place_id;
+  } else if(cafe.lat && cafe.lng){
+    url='https://www.google.com/maps/dir/?api=1&destination='+cafe.lat+','+cafe.lng;
+  } else {
+    url='https://www.google.com/maps/search/'+encodeURIComponent(cafe.name);
+  }
+  window.open(url,'_blank');
+}
+
+// ── MAPS RENDER ───────────────────────────────────────────────
+var mapInstances = {};
+function renderMap(elId, lat, lng, markers){
+  setTimeout(function(){
+    var el = document.getElementById(elId);
+    if(!el || !APP.mapsLoaded) return;
+    if(mapInstances[elId]){ mapInstances[elId].setCenter({lat,lng}); return; }
+    var map = new google.maps.Map(el, {
+      center:{lat,lng}, zoom:14,
+      styles:[
+        {featureType:'all',elementType:'geometry',stylers:[{color:'#1e2a1e'}]},
+        {featureType:'water',elementType:'geometry',stylers:[{color:'#0e1a12'}]},
+        {featureType:'road',elementType:'geometry',stylers:[{color:'#2d3d2c'}]},
+        {featureType:'poi',elementType:'labels',stylers:[{visibility:'off'}]},
+        {featureType:'transit',elementType:'labels',stylers:[{visibility:'off'}]},
+        {elementType:'labels.text.fill',stylers:[{color:'#a0b090'}]},
+        {elementType:'labels.text.stroke',stylers:[{color:'#1a2a1a'}]},
+      ],
+      mapTypeControl:false,streetViewControl:false,fullscreenControl:false,zoomControl:false,
+      gestureHandling:'cooperative',
+    });
+    mapInstances[elId] = map;
+    if(!markers || !markers.length){ markers = [{lat,lng,name:'You are here'}]; }
+    markers.forEach(function(m,i){
+      var mk = new google.maps.Marker({
+        position:{lat:m.lat,lng:m.lng},
+        map:map,
+        title:m.name,
+        icon:{
+          path:google.maps.SymbolPath.CIRCLE,
+          scale:i===0?12:9,
+          fillColor:i===0?'#C4A882':'#7A8C78',
+          fillOpacity:1,
+          strokeWeight:2,
+          strokeColor:'#FAF7F2',
+        }
+      });
+      var iw = new google.maps.InfoWindow({content:'<div style="font-family:DM Sans,sans-serif;font-size:12px;color:#2C1810;padding:4px">'+m.name+'</div>'});
+      mk.addListener('click',function(){ iw.open(map,mk); });
+    });
+  }, 100);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg){
+  APP.toast = msg;
+  if(APP.toastTimer) clearTimeout(APP.toastTimer);
+  render();
+  APP.toastTimer = setTimeout(function(){ APP.toast=null; render(); }, 2800);
+}
+
+// ── RENDER ENGINE ─────────────────────────────────────────────
+function render(){
+  var root = document.getElementById('app');
+  if(!root) return;
+  root.innerHTML = buildApp();
+  attachEvents();
+  handleMaps();
+}
+
+function handleMaps(){
+  // Render maps after DOM is ready
+  if(!APP.mapsLoaded) return;
+  var dm = document.getElementById('discover-map');
+  var cd = document.getElementById('cafe-detail-map');
+  if(dm){
+    var lat = APP.userLat || -26.2041, lng = APP.userLng || 28.0473;
+    var markers = APP.nearbyPlaces.length ? APP.nearbyPlaces.map(function(p){return{lat:parseFloat(p.lat),lng:parseFloat(p.lng),name:p.name};}) : [{lat:lat,lng:lng,name:APP.user.city}];
+    renderMap('discover-map', lat, lng, markers);
+  }
+  if(cd && APP.selectedCafe && APP.selectedCafe.lat){
+    renderMap('cafe-detail-map', parseFloat(APP.selectedCafe.lat), parseFloat(APP.selectedCafe.lng), [{lat:parseFloat(APP.selectedCafe.lat),lng:parseFloat(APP.selectedCafe.lng),name:APP.selectedCafe.name}]);
+  }
+}
+
+// ── BUILD HTML ────────────────────────────────────────────────
+function buildApp(){
+  if(!APP.apiKey) return buildApiKeySetup();
+  if(!APP.onboarded) return buildOnboarding();
+  if(APP.logSuccess && APP.logData) return buildShell(buildLogSuccess(), true);
+  if(APP.logVisible) return buildShell(buildLogFlow(), true);
+  if(APP.selectedCafe) return buildShell(buildCafeDetail(), true);
+  if(APP.currentScreen === 'barista') return buildShell(buildBaristaPortal(), true);
+  var content = '';
+  if(APP.currentScreen==='home') content = buildHome();
+  else if(APP.currentScreen==='discover') content = buildDiscover();
+  else if(APP.currentScreen==='profile') content = buildProfile();
+  return buildShell(content, false);
+}
+
+function buildShell(content, hideNav){
+  var nav = hideNav ? '' : buildNav();
+  var toastHtml = APP.toast ? '<div class="toast">'+APP.toast+'</div>' : '';
+  var modal = APP.modal ? buildModal() : '';
+  return '<div class="scr fade">'+content+'</div>'+nav+toastHtml+modal;
+}
+
+function buildNav(){
+  var tabs = [
+    ['home','Home','<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'],
+    ['discover','Discover','<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'],
+    ['log','Log','<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'],
+    ['profile','Profile','<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>'],
+    ['barista','Barista','<path d="M3 9l1-4h16l1 4"/><rect x="2" y="9" width="20" height="13" rx="2"/><line x1="8" y1="9" x2="8" y2="22"/><line x1="16" y1="9" x2="16" y2="22"/>'],
+  ];
+  return '<nav class="bnav">'+tabs.map(function(t){
+    var active = APP.currentScreen===t[0] ? ' on' : '';
+    return '<button class="nb'+active+'" onclick="nav(\''+t[0]+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">'+t[2]+'</svg>'+t[1]+'<div class="nd"></div></button>';
+  }).join('')+'</nav>';
+}
+
+// ── API KEY SETUP ─────────────────────────────────────────────
+function buildApiKeySetup(){
+  return '<div class="scr"><div style="background:var(--esp);min-height:100%;display:flex;flex-direction:column;padding:40px 28px 32px;color:#fff">'+
+    '<div style="font-family:Playfair Display,serif;font-size:26px;margin-bottom:8px">Brew<span style="font-style:italic;color:#C4A882">ly</span></div>'+
+    '<div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:48px">Coffee Taste Intelligence</div>'+
+    '<div style="flex:1">'+
+      '<div style="font-family:Playfair Display,serif;font-size:24px;margin-bottom:10px">Connect Google Maps</div>'+
+      '<div style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.65;margin-bottom:28px">Brewly uses Google Maps to find real cafés near you, show live maps, and get directions. You\'ll need a free API key from Google Cloud.</div>'+
+      '<div style="background:rgba(255,255,255,.06);border-radius:14px;padding:18px;margin-bottom:24px">'+
+        '<div style="font-size:12px;font-weight:500;margin-bottom:12px;color:rgba(255,255,255,.8)">How to get your free API key:</div>'+
+        ['1. Visit console.cloud.google.com','2. Create a new project','3. Enable Maps JavaScript API & Places API','4. Go to Credentials → Create API Key','5. Paste it below (10,000 free map loads/month)'].map(function(s,i){
+          return '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:6px;display:flex;gap:8px"><span style="color:#7A8C78">'+（i+1)+'.</span>'+s.slice(3)+'</div>';
+        }).join('')+
+        '<a href="https://console.cloud.google.com/google/maps-apis/overview" target="_blank" style="display:block;margin-top:12px;font-size:12px;color:#B2C4B0;text-decoration:underline">Open Google Cloud Console →</a>'+
+      '</div>'+
+      '<label class="fl" style="color:rgba(255,255,255,.4)">Your Google Maps API Key</label>'+
+      '<input id="api-key-input" type="text" placeholder="AIza..." style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff;margin-bottom:14px" oninput="document.getElementById(\'api-err\').textContent=\'\'">'+
+      '<div id="api-err" style="font-size:12px;color:#E07070;margin-top:-10px;margin-bottom:14px"></div>'+
+    '</div>'+
+    '<button class="obtn" onclick="submitApiKey()">Connect & Launch Brewly</button>'+
+    '<button class="oskp" onclick="skipMaps()">Continue without maps (limited features)</button>'+
+  '</div></div>';
+}
+
+function buildOnboarding(){
+  var s = APP._obStep || 0;
+  var sel = APP._obSel || {};
+  if(s===0) return '<div class="scr"><div class="ob fade">'+
+    '<div style="font-family:Playfair Display,serif;font-size:26px;margin-bottom:50px">Brew<span style="font-style:italic;color:#C4A882">ly</span></div>'+
+    '<div style="flex:1;display:flex;flex-direction:column;justify-content:center">'+
+      '<div style="font-size:40px;line-height:1.2;font-family:Playfair Display,serif;margin-bottom:16px">You don\'t need to <span style="font-style:italic;color:#C4A882">know</span> coffee.</div>'+
+      '<div style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:36px">Just tell us what you enjoy — we\'ll translate it into a living taste profile.</div>'+
+      '<div style="background:rgba(255,255,255,.05);border-radius:16px;padding:18px;border:.5px solid rgba(255,255,255,.08);margin-bottom:32px">'+
+        '<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#C4A882;margin-bottom:14px">How it works</div>'+
+        ['Log coffees you try','Build a living taste profile','Get recommendations you\'ll love'].map(function(txt,i){
+          return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:'+(i<2?10:0)+'px;font-size:13px;color:rgba(255,255,255,.65)"><div style="width:20px;height:20px;border-radius:50%;background:rgba(122,140,120,.3);border:.5px solid #7A8C78;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">'+(i+1)+'</div>'+txt+'</div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+    '<button class="obtn" onclick="obStep(1)">Build My Taste Profile</button>'+
+    '<button class="oskp" onclick="finishOb()">Skip — explore the app</button>'+
+  '</div></div>';
+
+  var steps=['What sweetness do you enjoy?','How do you feel about brightness?','What texture appeals to you?'];
+  var opts=[
+    [['dark-choc','🍫','Dark chocolate'],['caramel','🍯','Honey & caramel'],['fruit','🍓','Fruit desserts'],['none','○','I don\'t like sweet things']],
+    [['citrus','🍋','I love citrus and bright berries'],['stone','🍑','Stone fruit — gentle brightness'],['low','🫧','Smooth, low-acid flavours']],
+    [['light','🌬','Light & refreshing'],['creamy','🥛','Smooth & creamy'],['heavy','🫙','Thick & full-bodied']],
+  ];
+  var subs=['Pick all that genuinely appeal to you.','Think lemon, berries, sharpness.','How do you like your drinks to feel?'];
+  var trans={
+    'dark-choc':'Dark chocolate lovers often enjoy medium–dark roasts with rich cocoa depth.',
+    'caramel':'Honey and caramel fans often love natural processed coffees with medium roasts.',
+    'fruit':'Fruit dessert lovers tend to enjoy bright, fruity washed coffees — Ethiopian or Kenyan.',
+    'none':'Preferring less sweetness means you\'ll likely love dry, clean washed coffees.',
+    'citrus':'Citrus fans typically love high-acidity washed coffees — Kenyan AAs and Ethiopian Yirgacheffes.',
+    'stone':'Stone fruit preference points to natural processed coffees with softer brightness.',
+    'low':'Lower acidity suggests Brazilian or Sumatran coffees — smooth, chocolatey, round.',
+    'light':'Light texture lovers thrive with filter / pour-over — brilliant clarity and refreshing drinkability.',
+    'creamy':'Creamy texture preference means milk drinks and medium-roast espresso will likely delight you.',
+    'heavy':'Heavy body preference suggests dark roasts, French press, and Indonesian origins.',
+  };
+
+  if(s===4){
+    var prefers = sel.acid==='citrus' || sel.fruit ? ['Washed Ethiopian filter coffees','Kenyan V60s — bright & juicy','Light–medium roasts with fruit notes'] :
+      sel.acid==='low' ? ['Colombian medium roasts','Brazilian naturals','Balanced espresso blends'] :
+      ['Rwandan Red Bourbon — florals & stone fruit','Natural Ethiopians','Medium roasts with berry notes'];
+    return '<div class="scr"><div class="ob fade">'+
+      '<div class="opp">'+[0,1,2,3].map(function(){return '<div class="opb dn"></div>';}).join('')+'</div>'+
+      '<div class="oh">Your initial taste profile</div>'+
+      '<div class="os">This evolves with every coffee you log.</div>'+
+      '<div style="background:rgba(122,140,120,.12);border-radius:14px;padding:18px;margin-bottom:14px;border:.5px solid rgba(122,140,120,.3)">'+
+        '<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#B2C4B0;margin-bottom:12px">You\'ll probably enjoy</div>'+
+        prefers.map(function(l){return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:13px;color:rgba(255,255,255,.8)"><span style="color:#7A8C78">✓</span>'+l+'</div>';}).join('')+
+      '</div>'+
+      '<div style="background:rgba(155,58,34,.12);border-radius:14px;padding:18px;margin-bottom:28px;border:.5px solid rgba(155,58,34,.25)">'+
+        '<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#D4876A;margin-bottom:12px">You might want to avoid</div>'+
+        ['Very dark, smoky roasts','Heavy, overpowering bitterness'].map(function(l){return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:13px;color:rgba(255,255,255,.55)"><span style="color:#D4876A">✗</span>'+l+'</div>';}).join('')+
+      '</div>'+
+      '<button class="obtn" onclick="finishOb()">Start Logging Coffees ☕</button>'+
+      '<button class="oskp" onclick="finishOb()">Explore the app first</button>'+
+    '</div></div>';
+  }
+
+  var idx = s-1;
+  var curOpts = opts[idx] || [];
+  var curSels = sel['s'+s] || [];
+  var transKey = curSels[0] || '';
+  return '<div class="scr"><div class="ob fade">'+
+    '<div class="opp">'+[1,2,3].map(function(i){return '<div class="opb'+(i<s?' dn':'')+'"></div>';}).join('')+'</div>'+
+    '<div class="oh">'+steps[idx]+'</div>'+
+    '<div class="os">'+subs[idx]+'</div>'+
+    curOpts.map(function(o){
+      var isOn = curSels.includes(o[0]);
+      return '<div class="oop'+(isOn?' on':'')+'" onclick="obToggle('+s+',\''+o[0]+'\')"><span class="ooi">'+o[1]+'</span>'+o[2]+(isOn?' <span style="margin-left:auto;color:#7A8C78">✓</span>':'')+'</div>';
+    }).join('')+
+    (transKey && trans[transKey] ? '<div class="otr">☕ '+trans[transKey]+'</div>' : '')+
+    '<button class="obtn" style="margin-top:auto" onclick="obStep('+(s+1)+')">'+( s<3 ? 'Next' : 'See my profile →')+'</button>'+
+  '</div></div>';
+}
+
+// ── HOME ──────────────────────────────────────────────────────
+function buildHome(){
+  var h=new Date().getHours(), g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  var logs=APP.logs, total=logs.length, avgR=total?((logs.reduce(function(a,l){return a+l.rating;},0)/total).toFixed(1)):'—';
+  var cafes=[...new Set(logs.map(function(l){return l.cafe;}))].length;
+  var recent=logs.slice(-5).reverse();
+  var todayMatch=COFFEE_DB[0], score=matchScore(todayMatch);
+  return '<div>'+
+    '<div style="background:var(--esp);padding:20px 20px 28px;color:#fff">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between">'+
+        '<div style="font-family:Playfair Display,serif;font-size:22px">Brew<span style="font-style:italic;color:#C4A882">ly</span></div>'+
+        '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border-radius:20px;padding:5px 12px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer" onclick="goDiscover()">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'+
+          APP.user.city+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:13px;color:rgba(255,255,255,.45);margin-top:2px">'+g+', '+APP.user.name+' ☀️</div>'+
+      '<div style="background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:18px;margin-top:16px;position:relative;overflow:hidden">'+
+        '<div style="position:absolute;top:-50px;right:-50px;width:160px;height:160px;border-radius:50%;background:rgba(196,168,130,.08)"></div>'+
+        '<div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#C4A882;margin-bottom:8px">Today\'s Pick · '+score+'% match</div>'+
+        '<div style="font-family:Playfair Display,serif;font-size:19px;margin-bottom:3px">'+todayMatch.name+'</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:12px">'+todayMatch.region+'</div>'+
+        '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+          todayMatch.flavors.slice(0,2).map(function(f){return '<span style="background:rgba(122,140,120,.3);color:#B2C4B0;font-size:10px;padding:4px 10px;border-radius:20px">'+f+'</span>';}).join('')+
+        '</div>'+
+        '<div style="font-size:11px;color:rgba(255,255,255,.35);font-style:italic">✨ Matches your taste profile — '+todayMatch.score+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:16px 16px 0">'+
+      [['☕',total,'coffees logged'],['🏪',cafes,'cafés visited'],['⭐',avgR,'avg rating']].map(function(s){
+        return '<div style="background:var(--wht);border-radius:var(--r-md);padding:14px 12px;text-align:center;border:.5px solid var(--bdr)"><div style="font-size:20px;margin-bottom:4px">'+s[0]+'</div><div style="font-family:Playfair Display,serif;font-size:22px;color:var(--esp)">'+s[1]+'</div><div style="font-size:10px;color:var(--txt-m);margin-top:2px">'+s[2]+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<div style="padding:16px 16px 8px"><button class="btn" onclick="openLog()">+ Log a Coffee</button></div>'+
+    '<div style="padding:0 16px 8px">'+
+      '<div class="sl">Recent coffees</div>'+
+      (recent.length===0 ? '<div style="text-align:center;padding:24px;color:var(--txt-m);font-size:14px">No coffees logged yet.<br><br>Tap <strong>Log a Coffee</strong> to start!</div>' :
+        '<div class="card">'+recent.map(function(l,i){
+          return '<div style="padding:13px 16px;border-bottom:'+(i<recent.length-1?'.5px solid var(--bdr)':'none')+';display:flex;align-items:center;gap:12px">'+
+            '<div style="width:42px;height:42px;border-radius:10px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">☕</div>'+
+            '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500;color:var(--esp);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+l.name+'</div><div style="font-size:12px;color:var(--txt-m)">'+l.cafe+' · '+(l.method||'')+'</div></div>'+
+            '<div style="text-align:right;flex-shrink:0"><div style="font-size:12px;color:var(--brn)">'+'★'.repeat(l.rating||0)+'</div><div style="font-size:10px;color:var(--txt-m);margin-top:2px">'+(l.date||'')+'</div></div>'+
+          '</div>';
+        }).join('')+'</div>')+
+    '</div>'+
+    '<div style="padding:8px 16px 16px">'+
+      '<div class="sl">If you like this → try that</div>'+
+      '<div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px">'+
+        COFFEE_DB.slice(0,4).map(function(b){
+          var s=matchScore(b);
+          return '<div style="background:var(--wht);border-radius:14px;border:.5px solid var(--bdr);padding:14px;min-width:155px;flex-shrink:0">'+
+            '<div style="font-size:12px;font-weight:500;color:var(--esp);margin-bottom:3px">'+b.name+'</div>'+
+            '<div style="font-size:10px;color:var(--txt-m);margin-bottom:8px">'+b.process+' · '+b.roast+'</div>'+
+            '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">'+b.flavors.slice(0,2).map(function(f){return '<span style="background:var(--sage-pl);color:var(--sage);font-size:10px;padding:3px 8px;border-radius:20px">'+f+'</span>';}).join('')+'</div>'+
+            '<div style="font-size:10px;color:var(--sage);font-weight:500">'+s+'% match</div>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+  '<div style="height:20px"></div></div>';
+}
+
+// ── DISCOVER ─────────────────────────────────────────────────
+function buildDiscover(){
+  var f=APP._discFilter||'All';
+  var places=APP.nearbyPlaces;
+  var filters=['All','Filter','Espresso','Milk drinks','Roasters','Nearby'];
+  return '<div>'+
+    '<div style="padding:20px 20px 12px;background:var(--cream)">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+        '<div style="font-family:Playfair Display,serif;font-size:24px;color:var(--esp)">Discover</div>'+
+        '<div style="font-size:12px;color:var(--txt-m);display:flex;align-items:center;gap:4px;cursor:pointer" onclick="locateMe()">'+
+          (APP.locating ? '⟳ Locating...' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> '+APP.user.city)+
+        '</div>'+
+      '</div>'+
+      '<input type="text" placeholder="Search cafés, origins, flavours..." id="disc-search" oninput="discSearch(this.value)" style="margin-bottom:0">'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;padding:10px 16px 14px;overflow-x:auto;scrollbar-width:none">'+
+      filters.map(function(fl){return '<div class="chip'+(f===fl?' on':'')+'" style="flex-shrink:0;margin:0" onclick="discFilter(\''+fl+'\')">'+fl+'</div>';}).join('')+
+    '</div>'+
+
+    // Near Me
+    '<div style="margin:0 16px 14px"><div style="background:linear-gradient(135deg,var(--esp) 0%,#3A2010 100%);border-radius:16px;padding:18px;color:#fff;cursor:pointer;position:relative;overflow:hidden" onclick="nearMe()">'+
+      '<div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:.06">📍</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between">'+
+        '<div>'+
+          '<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#C4A882;margin-bottom:8px">✨ Live Feature</div>'+
+          '<div style="font-family:Playfair Display,serif;font-size:19px;margin-bottom:5px">Discover Specialty Near Me</div>'+
+          '<div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.5">Find real cafés matching your exact taste profile right now</div>'+
+        '</div>'+
+        '<div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:12px;font-size:20px">'+
+          (APP.locating ? '⟳' : '📍')+
+        '</div>'+
+      '</div>'+
+    '</div></div>'+
+
+    // Live map
+    '<div style="margin:0 16px 14px;border-radius:16px;overflow:hidden;height:200px;position:relative;background:#1e2a1e">'+
+      (APP.mapsLoaded ? '<div id="discover-map" style="width:100%;height:100%"></div>' :
+        '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px"><div style="font-size:32px;opacity:.3">🗺️</div><div style="font-size:12px;color:rgba(255,255,255,.3)">Map not loaded — enter API key in settings</div></div>')+
+      '<div style="position:absolute;top:10px;left:10px;background:rgba(44,24,16,.75);color:#fff;border-radius:8px;padding:4px 10px;font-size:10px">Map · '+APP.user.city+'</div>'+
+      '<div style="position:absolute;bottom:10px;right:10px;background:rgba(250,247,242,.92);border-radius:8px;padding:5px 11px;font-size:11px;color:var(--esp);font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="openGMaps()">'+
+        '🗺 Open Google Maps</div>'+
+    '</div>'+
+
+    // Nearby live results
+    (places.length ? '<div style="padding:0 16px 10px"><div class="sl">'+places.length+' specialty cafés near you (live)</div></div>'+
+      places.map(function(p){
+        return '<div class="cafe-card" onclick="selectCafe(\''+p.id+'\')" style="margin:0 16px 12px;cursor:pointer">'+
+          '<div style="background:'+p.heroColor+';height:90px;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative">'+
+            (p.emoji||'☕')+
+            '<div style="position:absolute;top:8px;right:8px;background:var(--sage);color:#fff;font-size:10px;font-weight:500;padding:4px 10px;border-radius:20px">'+p.fit+'% match</div>'+
+            (p.open ? '<div style="position:absolute;top:8px;left:8px;background:#2E7D32;color:#fff;font-size:9px;padding:3px 8px;border-radius:20px">Open now</div>' : '')+
+          '</div>'+
+          '<div style="padding:13px 15px">'+
+            '<div style="display:flex;align-items:flex-start;justify-content:space-between">'+
+              '<div><div style="font-family:Playfair Display,serif;font-size:16px;color:var(--esp)">'+p.name+'</div><div style="font-size:12px;color:var(--txt-m);margin-bottom:8px">'+p.area+' · '+p.distance+'km away</div></div>'+
+              '<div style="text-align:right"><div style="font-size:12px;color:var(--brn)">★ '+p.rating+'</div><div style="font-size:10px;color:var(--txt-m)">'+p.reviews+' reviews</div></div>'+
+            '</div>'+
+            '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+              p.fitReason.map(function(r){return '<div style="background:var(--cream);border:.5px solid var(--bdr);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--txt-md)">'+r+'</div>';}).join('')+
+            '</div>'+
+          '</div>'+
+        '</div>';
+      }).join('')
+    : '') +
+
+    // Coffee DB
+    '<div style="margin:0 16px 14px">'+
+      '<div class="chip'+(APP._showBeanDB?' on':'')+'" style="margin:0 0 10px;width:100%;text-align:center" onclick="toggleBeanDB()">'+
+        '🫘 Open Coffee Database '+(APP._showBeanDB?'▲':'▼')+
+      '</div>'+
+      (APP._showBeanDB ? COFFEE_DB.map(function(b){
+        var s=matchScore(b);
+        return '<div style="background:var(--wht);border-radius:12px;border:.5px solid var(--bdr);padding:13px 15px;margin-bottom:8px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'+
+            '<div><div style="font-size:13px;font-weight:500;color:var(--esp)">'+b.name+'</div><div style="font-size:11px;color:var(--txt-m)">'+b.region+'</div></div>'+
+            '<div style="font-size:10px;background:var(--sage-pl);color:var(--sage);padding:3px 8px;border-radius:10px;font-weight:500">'+b.score+'</div>'+
+          '</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+b.flavors.map(function(f){return '<span style="background:var(--cream);border-radius:20px;padding:3px 9px;font-size:10px;color:var(--txt-md);border:.5px solid var(--bdr)">'+f+'</span>';}).join('')+'</div>'+
+          '<div style="font-size:11px;color:var(--txt-m);font-style:italic;line-height:1.5;margin-bottom:8px">'+b.description+'</div>'+
+          '<div style="font-size:11px;color:var(--sage);font-weight:500">'+s+'% taste match</div>'+
+        '</div>';
+      }).join('') : '')+
+    '</div>'+
+  '<div style="height:20px"></div></div>';
+}
+
+// ── LOG FLOW ─────────────────────────────────────────────────
+function buildLogFlow(){
+  var s=APP._logStep||1;
+  var d=APP._logData||{name:'',cafe:'',city:APP.user.city,method:'V60',rating:0,acidity:5,body:5,sweetness:5,intensity:5,fruitiness:5,flavors:[],feedback:'Just right',reorder:'yes',notes:''};
+  var METHODS=[['Espresso','☕'],['V60','🫖'],['Aeropress','⬡'],['Milk drink','🥛'],['Cold brew','🧊'],['Batch brew','🪣']];
+  var FLAVORS=['Citrus','Berry','Stone fruit','Tropical','Chocolate','Caramel','Nutty','Floral','Honey','Vanilla','Earthy','Wine-like','Jasmine','Bergamot','Molasses','Brown sugar'];
+  var hdr='<div style="display:flex;align-items:center;gap:12px;padding:18px 16px 14px">'+
+    '<button class="bk" onclick="logBack('+s+')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>'+
+    '<div style="font-family:Playfair Display,serif;font-size:18px;color:var(--esp)">'+(s===1?'Log a Coffee':s===2?'Rate the taste':'Flavour & feedback')+'</div>'+
+    '<div style="display:flex;gap:5px;margin-left:auto">'+(
+      [1,2,3].map(function(i){return '<div style="height:3px;width:'+(i===s?18:6)+'px;border-radius:2px;background:'+(i<=s?'var(--esp)':'var(--bdr-md)')+';transition:all .3s"></div>';}).join('')
+    )+'</div></div>';
+
+  if(s===1) return '<div>'+hdr+
+    '<div style="padding:0 16px">'+
+      '<label class="fl">Coffee name</label>'+
+      '<input id="ln" type="text" placeholder="e.g. Ethiopia Guji Natural" value="'+e(d.name)+'" oninput="ld(\'name\',this.value)">'+
+      '<label class="fl">Café name</label>'+
+      '<input id="lc" type="text" placeholder="e.g. Father Coffee" value="'+e(d.cafe)+'" oninput="ld(\'cafe\',this.value)">'+
+      '<label class="fl">City</label>'+
+      '<input id="lcy" type="text" placeholder="e.g. Johannesburg" value="'+e(d.city)+'" oninput="ld(\'city\',this.value)">'+
+      '<label class="fl">Brew method</label>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'+
+        METHODS.map(function(m){var on=d.method===m[0];return '<div onclick="ld(\'method\',\''+m[0]+'\')" style="background:'+(on?'var(--esp)':'var(--cream)')+';border:.5px solid '+(on?'var(--esp)':'var(--bdr)')+';border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s"><div style="font-size:18px;margin-bottom:4px">'+m[1]+'</div><div style="font-size:11px;color:'+(on?'#fff':'var(--esp)')+';font-weight:500">'+m[0]+'</div></div>';}).join('')+
+      '</div>'+
+      '<label class="fl">Quick-fill from coffee database</label>'+
+      '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;margin-bottom:8px">'+
+        COFFEE_DB.map(function(b){return '<div onclick="fillFromDB(\''+b.id+'\')" style="background:var(--wht);border:.5px solid var(--bdr);border-radius:10px;padding:8px 12px;min-width:130px;flex-shrink:0;cursor:pointer"><div style="font-size:11px;font-weight:500;color:var(--esp);margin-bottom:2px">'+b.name+'</div><div style="font-size:10px;color:var(--txt-m)">'+b.process+' · '+b.roast+'</div><div style="font-size:10px;color:var(--sage);margin-top:3px">'+b.score+'</div></div>';}).join('')+
+      '</div>'+
+    '</div>'+
+    '<div style="padding:16px"><button class="btn" onclick="logNext(1)">Next: Rate the taste →</button></div>'+
+  '<div style="height:20px"></div></div>';
+
+  if(s===2) return '<div>'+hdr+
+    '<div style="padding:0 16px">'+
+      '<label class="fl">Overall rating</label>'+
+      '<div style="display:flex;gap:4px;margin-bottom:20px">'+
+        [1,2,3,4,5].map(function(n){return '<span class="star'+(n<=d.rating?' on':'')+'" onclick="ld(\'rating\','+n+')">★</span>';}).join('')+
+      '</div>'+
+      buildSlider('Acidity',d.acidity,'acidity','Smooth','Bright & lively','Acidity isn\'t sour — it\'s the pleasant brightness found in citrus or berries.')+
+      buildSlider('Body',d.body,'body','Tea-like','Syrupy & heavy','Body is how coffee feels in your mouth — its weight and texture.')+
+      buildSlider('Sweetness',d.sweetness,'sweetness','Dry','Very sweet','')+
+      buildSlider('Intensity',d.intensity,'intensity','Delicate','Bold','')+
+      buildSlider('Fruitiness',d.fruitiness,'fruitiness','None','Very fruity','')+
+    '</div>'+
+    '<div style="padding:16px"><button class="btn" onclick="logNext(2)">Next: Flavour notes →</button></div>'+
+  '<div style="height:20px"></div></div>';
+
+  var insight = d.acidity>=7 ? 'High acidity + fruity notes = likely a bright washed African coffee. You\'re developing a clear preference for vibrant, clean profiles.' : d.body>=7 ? 'High body + sweetness = hallmarks of natural processed or Brazilian coffees. Rich, approachable, satisfying.' : 'Balanced profile — you appreciate coffees that don\'t lean too far in any direction.';
+  return '<div>'+hdr+
+    '<div style="padding:0 16px">'+
+      '<label class="fl">What did you taste? (select all that apply)</label>'+
+      '<div style="display:flex;flex-wrap:wrap;margin-bottom:16px">'+FLAVORS.map(function(f){return '<span class="chip'+(d.flavors.includes(f)?' on':'')+'" onclick="toggleFlavor(\''+f+'\')">'+f+'</span>';}).join('')+'</div>'+
+      '<label class="fl">Overall balance</label>'+
+      '<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">'+
+        ['Too bitter','Just right','Too sour','Too weak','Perfectly balanced'].map(function(fb){return '<button onclick="ld(\'feedback\',\''+fb+'\')" style="padding:9px 12px;border:.5px solid '+(d.feedback===fb?'var(--esp)':'var(--bdr)')+';border-radius:10px;background:'+(d.feedback===fb?'var(--esp)':'var(--cream)')+';color:'+(d.feedback===fb?'#fff':'var(--esp)')+';font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;transition:all .2s">'+fb+'</button>';}).join('')+
+      '</div>'+
+      '<label class="fl">Would you order again?</label>'+
+      '<div style="display:flex;gap:8px;margin-bottom:16px">'+
+        [['Yes, for sure','yes'],['Maybe','maybe'],['No','no']].map(function(r){return '<button onclick="ld(\'reorder\',\''+r[1]+'\')" style="flex:1;padding:10px;border:.5px solid '+(d.reorder===r[1]?'var(--esp)':'var(--bdr)')+';border-radius:10px;background:'+(d.reorder===r[1]?'var(--esp)':'var(--cream)')+';color:'+(d.reorder===r[1]?'#fff':'var(--esp)')+';font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;transition:all .2s">'+r[0]+'</button>';}).join('')+
+      '</div>'+
+      '<div style="background:var(--sage-pl);border-radius:12px;padding:13px 15px;border-left:2px solid var(--sage);margin-bottom:16px">'+
+        '<div style="font-size:11px;color:var(--sage);font-weight:500;margin-bottom:4px">☕ Brewly Insight</div>'+
+        '<div style="font-size:13px;color:var(--esp);line-height:1.55;font-style:italic">'+insight+'</div>'+
+      '</div>'+
+      '<label class="fl">Notes (optional)</label>'+
+      '<textarea id="lnotes" placeholder="Any other thoughts..." style="height:80px" oninput="ld(\'notes\',this.value)">'+e(d.notes||'')+'</textarea>'+
+    '</div>'+
+    '<div style="padding:16px"><button class="btn" onclick="saveCoffeeLog()">☕ Save to my profile</button></div>'+
+  '<div style="height:20px"></div></div>';
+}
+
+function buildSlider(label,val,key,l,r,tip){
+  return '<div class="sw">'+
+    '<div class="st"><span class="sn">'+label+(tip?'  <span style="font-size:11px;color:var(--txt-m);cursor:pointer" title="'+tip+'">ⓘ</span>':'')+'</span><span class="sv">'+Math.round(val)+'</span></div>'+
+    '<input type="range" min="1" max="10" step="1" value="'+Math.round(val)+'" oninput="ld(\''+key+'\',parseInt(this.value));this.previousElementSibling.children[1].textContent=this.value">'+
+    '<div class="se"><span class="sec">'+l+'</span><span class="sec">'+r+'</span></div>'+
+  '</div>';
+}
+
+function buildLogSuccess(){
+  var d=APP.logData;
+  var insight=d.acidity>=7?'You rated acidity high and selected fruity notes — classic washed African profile. Your palate for bright, clean coffees is developing nicely.':'Your taste leans toward balanced, rich profiles. Natural processed coffees with sweetness and body could be a great next step.';
+  return '<div style="background:var(--esp);min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;color:#fff">'+
+    '<div style="width:80px;height:80px;border-radius:50%;background:rgba(122,140,120,.2);border:1px solid var(--sage);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px">☕</div>'+
+    '<div style="font-family:Playfair Display,serif;font-size:26px;margin-bottom:8px">Coffee logged!</div>'+
+    '<div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:8px">Your taste profile just got sharper.</div>'+
+    '<div style="background:rgba(255,255,255,.05);border-radius:14px;padding:16px;margin:16px 0 28px;text-align:left;border-left:2px solid var(--sage);width:100%">'+
+      '<div style="font-size:11px;color:var(--sage-lt);margin-bottom:6px;letter-spacing:.8px;text-transform:uppercase">Brewly Insight</div>'+
+      '<p style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;font-style:italic">'+insight+'</p>'+
+    '</div>'+
+    '<button class="obtn" style="margin-bottom:10px" onclick="backHome()">Back to Home</button>'+
+    '<button class="oskp" onclick="goDiscover()">Discover similar coffees →</button>'+
+  '</div>';
+}
+
+// ── PROFILE ───────────────────────────────────────────────────
+function buildProfile(){
+  var p=APP.tasteProfile, prefs=APP.preferences;
+  var logs=APP.logs, total=logs.length;
+  var pct={' Coffee Curious':20,'Flavour Explorer':55,'Brew Guide':75,'Palate Pro':95}[APP.user.tier]||55;
+  return '<div>'+
+    '<div style="background:var(--esp);padding:24px 20px 36px;color:#fff">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between">'+
+        '<div>'+
+          '<div style="width:52px;height:52px;border-radius:50%;background:rgba(196,168,130,.2);border:1px solid rgba(196,168,130,.35);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px">☕</div>'+
+          '<div style="font-family:Playfair Display,serif;font-size:22px;margin-bottom:6px">'+APP.user.name+'\'s Profile</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(122,140,120,.3);border:.5px solid var(--sage);color:var(--sage-lt);font-size:11px;letter-spacing:.8px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:10px">✦ '+APP.user.tier+'</div>'+
+          '<div style="font-size:13px;color:rgba(255,255,255,.4)">'+total+' coffees · '+APP.user.city+'</div>'+
+        '</div>'+
+        '<button onclick="nav(\'barista\')" style="background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 14px;color:#fff;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;white-space:nowrap">Barista Portal →</button>'+
+      '</div>'+
+      '<div style="margin-top:16px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px"><span>'+APP.user.tier+'</span><span>'+pct+'% to next level</span></div>'+
+        '<div class="pb"><div class="pf2" style="width:'+pct+'%"></div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="background:var(--wht);border-radius:var(--r-lg);border:.5px solid var(--bdr);margin:-18px 16px 14px;padding:20px;box-shadow:var(--sh-sm)">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
+        '<div style="font-family:Playfair Display,serif;font-size:16px;color:var(--esp)">Taste Radar</div>'+
+        '<div style="font-size:11px;color:var(--txt-m)">Based on '+total+' logs</div>'+
+      '</div>'+
+      buildRadarSVG(p)+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">'+
+        Object.entries(p).map(function(kv){
+          return '<div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txt-m);margin-bottom:3px"><span>'+kv[0].charAt(0).toUpperCase()+kv[0].slice(1)+'</span><span style="color:var(--esp);font-weight:500">'+kv[1].toFixed(1)+'</span></div><div class="pb"><div class="pf2" style="width:'+(kv[1]*10)+'%"></div></div></div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div style="padding:0 16px">'+
+      '<div class="sl">You enjoy</div>'+
+      '<div style="margin-bottom:14px">'+prefs.likes.map(function(l){return '<span class="chip sage">'+l+'</span>';}).join('')+'</div>'+
+      '<div class="sl">You tend to avoid</div>'+
+      '<div style="margin-bottom:14px">'+prefs.avoids.map(function(a){return '<span class="chip red">'+a+'</span>';}).join('')+'</div>'+
+      '<label class="fl">Add to "enjoy" list</label>'+
+      '<div style="display:flex;gap:8px;margin-bottom:14px">'+
+        '<input id="add-like" type="text" placeholder="e.g. Floral" style="flex:1;margin-bottom:0">'+
+        '<button onclick="addLike()" style="background:var(--sage);color:#fff;border:none;border-radius:var(--r-sm);padding:0 16px;font-family:DM Sans,sans-serif;cursor:pointer">Add</button>'+
+      '</div>'+
+    '</div>'+
+    '<div style="padding:0 16px;margin-bottom:14px">'+
+      '<div class="sl">If you like this → try that</div>'+
+      '<div style="background:var(--wht);border:.5px solid var(--bdr);border-radius:14px;padding:16px">'+
+        [['Ethiopia Guji Natural','→','Kenya AA Nyeri','Both bright & fruity'],['Colombia Huila','→','Rwanda Huye Mountain','Gentle & balanced'],['Brazil Cerrado','→','Sumatra Mandheling','Full-bodied lovers']].map(function(r,i){
+          return '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:'+(i<2?'.5px solid var(--bdr)':'none')+';font-size:12px"><span style="color:var(--esp);font-weight:500">'+r[0]+'</span><span style="color:var(--sage);font-weight:600">'+r[1]+'</span><span style="color:var(--esp);font-weight:500">'+r[2]+'</span><span style="color:var(--txt-m);margin-left:auto;font-size:10px">'+r[3]+'</span></div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div style="background:var(--esp);border-radius:var(--r-lg);margin:0 16px 14px;padding:18px;display:flex;align-items:center;gap:16px;color:#fff;cursor:pointer" onclick="showQRModal()">'+
+      '<div style="width:52px;height:52px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" viewBox="0 0 24 24" fill="var(--esp)"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="5" y="5" width="3" height="3" fill="#fff"/><rect x="16" y="5" width="3" height="3" fill="#fff"/><rect x="5" y="16" width="3" height="3" fill="#fff"/><rect x="14" y="14" width="2" height="2"/><rect x="18" y="14" width="2" height="2"/><rect x="14" y="18" width="2" height="2"/><rect x="18" y="18" width="2" height="2"/></svg></div>'+
+      '<div style="flex:1"><div style="font-size:14px;font-weight:500;margin-bottom:4px">Show to Barista</div><div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.4">Share your taste profile instantly — they\'ll know exactly what to pour</div></div>'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'+
+    '</div>'+
+    // Settings
+    '<div style="padding:0 16px;margin-bottom:14px">'+
+      '<div class="sl">Profile settings</div>'+
+      '<div class="card cp">'+
+        '<label class="fl">Your name</label>'+
+        '<input type="text" id="uname" value="'+e(APP.user.name)+'" oninput="APP.user.name=this.value;saveAll()" style="margin-bottom:12px">'+
+        '<label class="fl">Your city</label>'+
+        '<input type="text" id="ucity" value="'+e(APP.user.city)+'" oninput="APP.user.city=this.value;saveAll()" style="margin-bottom:12px">'+
+        '<button class="btn" onclick="refreshApiKey()">🔑 Update Google Maps API Key</button>'+
+      '</div>'+
+    '</div>'+
+  '<div style="height:20px"></div></div>';
+}
+
+function buildRadarSVG(p){
+  var sz=200,cx=100,cy=100,r=72;
+  var axes=['Acidity','Fruitiness','Sweetness','Body','Intensity'];
+  var vals=[p.acidity,p.fruitiness,p.sweetness,p.body,p.intensity];
+  function pt(v,i){
+    var ang=(i/5)*2*Math.PI-Math.PI/2;
+    var frac=(v/10)*r;
+    return [(cx+Math.cos(ang)*frac).toFixed(1),(cy+Math.sin(ang)*frac).toFixed(1)];
+  }
+  function axPt(frac,i){
+    var ang=(i/5)*2*Math.PI-Math.PI/2;
+    return [(cx+Math.cos(ang)*r*frac).toFixed(1),(cy+Math.sin(ang)*r*frac).toFixed(1)];
+  }
+  var rings=[.25,.5,.75,1].map(function(f){
+    return [0,1,2,3,4].map(function(i){return axPt(f,i).join(',');}).join(' ');
+  });
+  var dataPath=[0,1,2,3,4].map(function(i){var p2=pt(vals[i],i);return (i===0?'M':'L')+p2.join(',');}).join(' ')+'Z';
+  var labelPts=[0,1,2,3,4].map(function(i){
+    var ang=(i/5)*2*Math.PI-Math.PI/2;
+    return [(cx+Math.cos(ang)*(r+18)).toFixed(1),(cy+Math.sin(ang)*(r+18)).toFixed(1)];
+  });
+  return '<svg viewBox="0 0 '+sz+' '+sz+'" width="'+sz+'" height="'+sz+'" style="display:block;margin:0 auto">'+
+    rings.map(function(pts){return '<polygon points="'+pts+'" fill="none" stroke="rgba(44,24,16,.08)" stroke-width=".8"/>';}).join('')+
+    [0,1,2,3,4].map(function(i){var a=axPt(1,i);return '<line x1="'+cx+'" y1="'+cy+'" x2="'+a[0]+'" y2="'+a[1]+'" stroke="rgba(44,24,16,.08)" stroke-width=".8"/>';}).join('')+
+    '<path d="'+dataPath+'" fill="rgba(122,140,120,.18)" stroke="#7A8C78" stroke-width="2"/>'+
+    [0,1,2,3,4].map(function(i){var pp=pt(vals[i],i);return '<circle cx="'+pp[0]+'" cy="'+pp[1]+'" r="4" fill="#7A8C78"/>';}).join('')+
+    labelPts.map(function(lp,i){return '<text x="'+lp[0]+'" y="'+lp[1]+'" text-anchor="middle" dominant-baseline="middle" font-size="8.5" fill="#9A8070" font-family="DM Sans,sans-serif">'+axes[i]+'</text>';}).join('')+
+  '</svg>';
+}
+
+// ── CAFÉ DETAIL ───────────────────────────────────────────────
+function buildCafeDetail(){
+  var c=APP.selectedCafe;
+  if(!c) return '';
+  var details=APP._cafeDetails;
+  return '<div>'+
+    '<div style="background:'+(c.heroColor||'#2C1810')+';height:160px;display:flex;align-items:center;justify-content:center;font-size:60px;position:relative">'+
+      (c.emoji||'☕')+
+      '<button class="bk" style="position:absolute;top:16px;left:16px;background:rgba(0,0,0,.3);border:none" onclick="clearCafe()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>'+
+    '</div>'+
+    '<div style="padding:18px 16px 0">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">'+
+        '<div style="font-family:Playfair Display,serif;font-size:22px;color:var(--esp)">'+c.name+'</div>'+
+        '<div style="background:conic-gradient(var(--sage) '+(c.fit/100*360)+'deg,rgba(44,24,16,.12) '+(c.fit/100*360)+'deg);width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+          '<div style="width:38px;height:38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--esp)">'+c.fit+'%</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:13px;color:var(--txt-m);margin-bottom:12px">'+c.area+' · '+(c.distance||'')+'km away</div>'+
+
+      // Map
+      '<div style="border-radius:16px;overflow:hidden;height:180px;background:#1e2a1e;margin-bottom:14px;position:relative">'+
+        (APP.mapsLoaded && c.lat ? '<div id="cafe-detail-map" style="width:100%;height:100%"></div>' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,.3)">🗺️ Map loading...</div>')+
+        (c.lat ? '<div style="position:absolute;bottom:10px;right:10px;background:rgba(250,247,242,.92);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:500;color:var(--esp);cursor:pointer" onclick="openGMapsForCafe()">📍 Get Directions</div>' : '')+
+      '</div>'+
+
+      // Info from Google or fallback
+      '<div class="card cp" style="margin-bottom:14px">'+
+        (details ? [
+          ['Address', details.formatted_address],
+          ['Phone', details.formatted_phone_number||'—'],
+          ['Hours', details.opening_hours ? (details.opening_hours.open_now ? '🟢 Open now' : '🔴 Closed') : '—'],
+          ['Rating', '★ '+details.rating+(details.price_level ? ' · '+'$'.repeat(details.price_level) : '')],
+          ['Website', details.website ? '<a href="'+details.website+'" target="_blank" style="color:var(--sage)">Visit website →</a>' : '—'],
+        ] : [
+          ['Area', c.area],
+          ['Rating', '★ '+c.rating+' ('+c.reviews+' reviews)'],
+          ['Status', c.open ? '🟢 Open now' : '🔴 Closed'],
+        ]).map(function(row){
+          return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:.5px solid var(--bdr)"><span style="font-size:13px;color:var(--txt-m)">'+row[0]+'</span><span style="font-size:13px;color:var(--esp);font-weight:500;text-align:right;max-width:60%">'+row[1]+'</span></div>';
+        }).join('')+
+      '</div>'+
+
+      // User reviews from Google
+      (details && details.reviews && details.reviews.length ? 
+        '<div class="sl">Google Reviews</div>'+
+        '<div class="card" style="margin-bottom:14px">'+details.reviews.slice(0,3).map(function(rv,i){
+          return '<div style="padding:13px 16px;border-bottom:'+(i<2?'.5px solid var(--bdr)':'none')+'">'+
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+              '<div style="font-size:13px;font-weight:500;color:var(--esp)">'+rv.author_name+'</div>'+
+              '<div style="font-size:12px;color:var(--brn)">'+'★'.repeat(rv.rating)+'</div>'+
+            '</div>'+
+            '<div style="font-size:12px;color:var(--txt-m);line-height:1.5">'+rv.text.slice(0,150)+(rv.text.length>150?'...':'')+'</div>'+
+          '</div>';
+        }).join('')+'</div>'
+      : '') +
+
+      // What to order tip
+      '<div style="background:#FEF9F0;border-radius:12px;padding:13px 15px;border-left:2px solid var(--brn-lt);margin-bottom:14px">'+
+        '<div style="font-size:11px;color:var(--brn);font-weight:500;margin-bottom:4px">💡 What to order</div>'+
+        '<div style="font-size:13px;color:var(--esp);line-height:1.55;font-style:italic">'+(c.fit>=90?'Your taste twin loves this place. Ask for their single-origin filter — something bright and fruity.':'Solid match. Tell the barista you prefer medium acidity, light roast, with fruit or caramel notes.')+'</div>'+
+      '</div>'+
+
+      // Barista feedback
+      '<div style="background:var(--cream-dk);border-radius:14px;padding:16px;margin-bottom:14px">'+
+        '<div style="font-size:13px;font-weight:500;color:var(--esp);margin-bottom:10px">📬 Send feedback to barista</div>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+          ['Spot on!','Too acidic','More body','Perfect roast','Try lighter roast'].map(function(f){
+            var sel=APP._cafeFeedback===f;
+            return '<button onclick="cafeFeedback(\''+f+'\')" style="padding:8px 12px;border-radius:20px;border:.5px solid '+(sel?'var(--sage)':'var(--bdr)')+';background:'+(sel?'var(--sage-pl)':'#fff')+';color:'+(sel?'var(--sage)':'var(--esp)')+';font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;transition:all .2s">'+f+'</button>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+
+      '<div style="display:flex;gap:10px;margin-bottom:20px">'+
+        '<button class="btn out" style="flex:1" onclick="saveCafe()">♡ Save</button>'+
+        '<button class="btn" style="flex:2" onclick="openGMapsForCafe()">📍 Get Directions</button>'+
+      '</div>'+
+    '</div>'+
+  '<div style="height:20px"></div></div>';
+}
+
+// ── BARISTA PORTAL ────────────────────────────────────────────
+function buildBaristaPortal(){
+  var t=APP._bTab||'dashboard';
+  var tabs=[['dashboard','Dashboard'],['customers','Customers'],['inventory','Bean Stock'],['cafe','Café Profile']];
+  var insights={topFlavors:['Fruity','Bright','Citrus'],avgAcidity:6.8,totalScans:APP.savedCustomers.length*3+142,thisMonth:38};
+  return '<div>'+
+    '<div style="background:linear-gradient(135deg,#1A3A2C 0%,var(--esp) 100%);padding:24px 20px 20px;color:#fff">'+
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">'+
+        '<button class="bk" style="background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.15)" onclick="nav(\'profile\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>'+
+        '<div style="font-family:Playfair Display,serif;font-size:20px">Barista Portal</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+        tabs.map(function(tb){return '<button onclick="bTab(\''+tb[0]+'\')" style="padding:8px 14px;border-radius:20px;background:'+(t===tb[0]?'#fff':'rgba(255,255,255,.1)')+';color:'+(t===tb[0]?'var(--esp)':'rgba(255,255,255,.7)')+';border:none;font-family:DM Sans,sans-serif;font-size:12px;font-weight:500;cursor:pointer">'+tb[1]+'</button>';}).join('')+
+      '</div>'+
+    '</div>'+
+
+    (t==='dashboard' ? buildBDashboard(insights) :
+     t==='customers' ? buildBCustomers() :
+     t==='inventory' ? buildBInventory() :
+     buildBCafe())+
+
+  '<div style="height:20px"></div></div>';
+}
+
+function buildBDashboard(ins){
+  return '<div style="padding:16px">'+
+    '<div class="sl">Insights — last 30 days</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">'+
+      [['📲','Total QR scans',ins.totalScans],['📅','This month',ins.thisMonth],['🍋','Avg acidity pref',ins.avgAcidity.toFixed(1)+'/10'],['🫐','Top flavour ask','Fruity']].map(function(s){
+        return '<div style="background:var(--wht);border-radius:var(--r-md);padding:14px 12px;border:.5px solid var(--bdr)"><div style="font-size:20px;margin-bottom:6px">'+s[0]+'</div><div style="font-family:Playfair Display,serif;font-size:22px;color:var(--esp)">'+s[2]+'</div><div style="font-size:11px;color:var(--txt-m);margin-top:2px">'+s[1]+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="sl">Top taste requests</div>'+
+    '<div class="card cp" style="margin-bottom:14px">'+
+      ins.topFlavors.map(function(f,i){
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:'+(i<ins.topFlavors.length-1?'.5px solid var(--bdr)':'none')+'">'+
+          '<div style="font-size:13px;color:var(--esp);font-weight:500;flex:1">#'+(i+1)+' '+f+'</div>'+
+          '<div class="pb" style="flex:2"><div class="pf2" style="width:'+(90-i*20)+'%"></div></div>'+
+          '<div style="font-size:12px;color:var(--txt-m);margin-left:8px">'+(90-i*20)+'%</div>'+
+        '</div>';
+      }).join('')+
+    '</div>'+
+    '<div class="sl">Low stock alerts</div>'+
+    '<div class="card cp">'+
+      APP.beans.filter(function(b){return b.stock==='Low';}).map(function(b){
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--bdr)">'+
+          '<div style="width:8px;height:8px;border-radius:50%;background:#E24B4A;flex-shrink:0"></div>'+
+          '<div style="font-size:13px;color:var(--esp);flex:1">'+b.origin+'</div>'+
+          '<span style="font-size:11px;background:#FDF0ED;color:#9B3A22;padding:3px 9px;border-radius:20px">Reorder soon</span>'+
+        '</div>';
+      }).join('')+(APP.beans.filter(function(b){return b.stock==='Low';}).length===0?'<div style="font-size:13px;color:var(--txt-m);padding:8px 0">No low-stock items 🎉</div>':'')+
+    '</div>'+
+  '</div>';
+}
+
+function buildBCustomers(){
+  var cs=APP.savedCustomers;
+  return '<div style="padding:16px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+      '<div class="sl" style="margin-bottom:0">Customer profiles ('+cs.length+')</div>'+
+      '<button onclick="addCustomerProfile()" style="background:var(--esp);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer">+ Add</button>'+
+    '</div>'+
+    (cs.length===0 ? '<div style="text-align:center;padding:32px;color:var(--txt-m);font-size:14px">No customer profiles yet.<br>When a customer shows their Brewly QR,<br>tap "Add" to save their taste profile.</div>' :
+      cs.map(function(c,i){
+        return '<div style="background:var(--wht);border-radius:14px;border:.5px solid var(--bdr);padding:16px;margin-bottom:12px">'+
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'+
+            '<div><div style="font-size:14px;font-weight:500;color:var(--esp);margin-bottom:2px">'+c.name+'</div><div style="font-size:11px;color:var(--txt-m)">'+c.date+' · Table '+c.table+'</div></div>'+
+            (c.confirmed?'<span style="background:var(--sage-pl);color:var(--sage);font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500">✓ Confirmed</span>':'<span style="background:var(--cream-dk);color:var(--txt-m);font-size:10px;padding:3px 9px;border-radius:20px">Pending</span>')+
+          '</div>'+
+          '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">'+
+            (c.likes||[]).map(function(l){return '<span style="background:var(--sage-pl);color:var(--sage);font-size:11px;padding:3px 9px;border-radius:20px">✓ '+l+'</span>';}).join('')+
+            (c.avoids||[]).map(function(a){return '<span style="background:#FDF0ED;color:#9B3A22;font-size:11px;padding:3px 9px;border-radius:20px">✗ '+a+'</span>';}).join('')+
+          '</div>'+
+          '<label class="fl">Notes</label>'+
+          '<input type="text" value="'+(c.notes||'')+'" placeholder="Add note..." oninput="updateCustomer('+i+',\'notes\',this.value)" style="margin-bottom:10px">'+
+          '<div style="display:flex;gap:8px">'+
+            '<button onclick="recommendForCustomer('+i+')" style="flex:1;padding:9px;border-radius:10px;background:var(--esp);color:#fff;border:none;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer">☕ Recommend</button>'+
+            '<button onclick="toggleConfirm('+i+')" style="flex:1;padding:9px;border-radius:10px;background:var(--cream);color:var(--esp);border:.5px solid var(--bdr);font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer">'+(c.confirmed?'Unconfirm':'✓ Confirm')+'</button>'+
+            '<button onclick="deleteCustomer('+i+')" style="padding:9px 12px;border-radius:10px;background:#FDF0ED;color:#9B3A22;border:none;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer">✕</button>'+
+          '</div>'+
+        '</div>';
+      }).join('')
+    )+
+  '</div>';
+}
+
+function buildBInventory(){
+  var bs=APP.beans;
+  return '<div style="padding:16px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+      '<div class="sl" style="margin-bottom:0">Bean inventory ('+bs.length+')</div>'+
+      '<button onclick="showAddBean()" style="background:var(--esp);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer">+ Add Bean</button>'+
+    '</div>'+
+    (APP._addingBean ? buildAddBeanForm() : '')+
+    bs.map(function(b,i){
+      return '<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:.5px solid var(--bdr)">'+
+        '<div style="width:44px;height:44px;border-radius:10px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🫘</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:13px;font-weight:500;color:var(--esp);margin-bottom:2px">'+b.origin+'</div>'+
+          '<div style="font-size:11px;color:var(--txt-m)">'+b.process+' · '+b.roast+(b.roaster?' · '+b.roaster:'')+'</div>'+
+          (b.tasting && b.tasting.length ? '<div style="font-size:10px;color:var(--sage);margin-top:3px">'+b.tasting.slice(0,3).join(', ')+'</div>' : '')+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'+
+          '<select onchange="updateBeanStock('+i+',this.value)" style="padding:4px 8px;font-size:11px;border-radius:20px;border:.5px solid var(--bdr);background:'+(b.stock==='High'?'var(--sage-pl)':b.stock==='Low'?'#FDF0ED':'var(--cream)')+';color:'+(b.stock==='High'?'var(--sage)':b.stock==='Low'?'#9B3A22':'var(--txt-m)')+';cursor:pointer;margin-bottom:0">'+
+            ['High','Medium','Low'].map(function(s){return '<option value="'+s+'"'+(b.stock===s?' selected':'')+'>'+s+'</option>';}).join('')+
+          '</select>'+
+          '<button onclick="deleteBean('+i+')" style="font-size:10px;color:var(--txt-m);background:none;border:none;cursor:pointer">Remove</button>'+
+        '</div>'+
+      '</div>';
+    }).join('')+
+  '</div>';
+}
+
+function buildAddBeanForm(){
+  var nb=APP._newBean||{origin:'',process:'Washed',roast:'Light',roaster:'',stock:'Medium',tasting:''};
+  return '<div style="background:var(--cream-dk);border-radius:14px;padding:16px;margin-bottom:14px;border:.5px solid var(--bdr)">'+
+    '<div style="font-family:Playfair Display,serif;font-size:16px;color:var(--esp);margin-bottom:14px">Add new bean</div>'+
+    '<label class="fl">Origin / coffee name</label>'+
+    '<input type="text" placeholder="e.g. Ethiopia Yirgacheffe" value="'+e(nb.origin)+'" oninput="updateNewBean(\'origin\',this.value)">'+
+    '<label class="fl">Roaster</label>'+
+    '<input type="text" placeholder="e.g. Rosetta Roastery" value="'+e(nb.roaster)+'" oninput="updateNewBean(\'roaster\',this.value)">'+
+    '<div style="display:flex;gap:10px">'+
+      '<div style="flex:1"><label class="fl">Process</label><select onchange="updateNewBean(\'process\',this.value)" style="margin-bottom:14px">'+['Washed','Natural','Honey','Anaerobic','Carbonic Maceration'].map(function(p){return '<option'+(nb.process===p?' selected':'')+'>'+p+'</option>';}).join('')+'</select></div>'+
+      '<div style="flex:1"><label class="fl">Roast</label><select onchange="updateNewBean(\'roast\',this.value)" style="margin-bottom:14px">'+['Light','Light-Medium','Medium','Medium-Dark','Dark'].map(function(r){return '<option'+(nb.roast===r?' selected':'')+'>'+r+'</option>';}).join('')+'</select></div>'+
+    '</div>'+
+    '<label class="fl">Tasting notes (comma separated)</label>'+
+    '<input type="text" placeholder="e.g. Jasmine, Lemon, Peach" value="'+e(nb.tasting)+'" oninput="updateNewBean(\'tasting\',this.value)">'+
+    '<label class="fl">Stock level</label>'+
+    '<div style="display:flex;gap:8px;margin-bottom:14px">'+['High','Medium','Low'].map(function(s){return '<button onclick="updateNewBean(\'stock\',\''+s+'\')" style="flex:1;padding:10px;border:.5px solid '+(nb.stock===s?'var(--esp)':'var(--bdr)')+';border-radius:10px;background:'+(nb.stock===s?'var(--esp)':'var(--cream)')+';color:'+(nb.stock===s?'#fff':'var(--esp)')+';font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer">'+s+'</button>';}).join('')+'</div>'+
+    '<div style="display:flex;gap:8px">'+
+      '<button class="btn" onclick="saveNewBean()">Save Bean</button>'+
+      '<button class="btn out" style="flex:0 0 auto;width:80px" onclick="cancelAddBean()">Cancel</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function buildBCafe(){
+  var ci=APP._cafeProfile||{name:'My Café',hours:'Mon–Sat 7–17:00',specialties:'V60, Espresso, Cold Brew',address:'',bio:''};
+  return '<div style="padding:16px">'+
+    '<div class="sl">Café profile</div>'+
+    '<div class="card cp" style="margin-bottom:14px">'+
+      '<label class="fl">Café name</label>'+
+      '<input type="text" id="cf-name" value="'+e(ci.name)+'" oninput="updateCafeProfile(\'name\',this.value)">'+
+      '<label class="fl">Address</label>'+
+      '<input type="text" id="cf-addr" placeholder="123 Main St, City" value="'+e(ci.address)+'" oninput="updateCafeProfile(\'address\',this.value)">'+
+      '<label class="fl">Opening hours</label>'+
+      '<input type="text" id="cf-hrs" placeholder="Mon–Sat 7–17:00" value="'+e(ci.hours)+'" oninput="updateCafeProfile(\'hours\',this.value)">'+
+      '<label class="fl">Specialties</label>'+
+      '<input type="text" id="cf-spec" placeholder="V60, Espresso, Cold Brew" value="'+e(ci.specialties)+'" oninput="updateCafeProfile(\'specialties\',this.value)">'+
+      '<label class="fl">About your café</label>'+
+      '<textarea id="cf-bio" placeholder="Tell customers about your coffee philosophy..." style="height:80px" oninput="updateCafeProfile(\'bio\',this.value)">'+e(ci.bio||'')+'</textarea>'+
+      '<div style="background:var(--sage-pl);border-radius:12px;padding:13px 15px;border-left:2px solid var(--sage);margin-bottom:14px">'+
+        '<div style="font-size:12px;color:var(--sage);font-weight:500;margin-bottom:4px">✓ Verification status</div>'+
+        '<div style="font-size:12px;color:var(--esp);line-height:1.5">Profile submitted for review. Verified cafés appear with a ✓ badge in Discover results.</div>'+
+      '</div>'+
+      '<button class="btn" onclick="saveCafeProfile()">Save Café Profile</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function buildQRModal(){
+  var p=APP.preferences;
+  return '<div class="mo" onclick="closeModal()"><div class="ms" onclick="event.stopPropagation()">'+
+    '<div class="mh"></div>'+
+    '<div style="font-family:Playfair Display,serif;font-size:22px;color:var(--esp);text-align:center;margin-bottom:6px">'+APP.user.name+'\'s Taste Card</div>'+
+    '<div style="font-size:13px;color:var(--txt-m);text-align:center;margin-bottom:20px">Show this to your barista</div>'+
+    '<div style="background:var(--cream);border-radius:16px;padding:20px;margin-bottom:16px">'+
+      '<div style="display:flex;gap:10px;margin-bottom:14px">'+
+        '<div style="flex:1;background:var(--sage-pl);border-radius:12px;padding:14px;text-align:center">'+
+          '<div style="font-size:11px;color:var(--sage);font-weight:500;margin-bottom:6px;letter-spacing:.5px">✓ PREFERS</div>'+
+          p.likes.slice(0,4).map(function(l){return '<div style="font-size:12px;color:var(--esp);margin-bottom:3px">'+l+'</div>';}).join('')+
+        '</div>'+
+        '<div style="flex:1;background:#FDF0ED;border-radius:12px;padding:14px;text-align:center">'+
+          '<div style="font-size:11px;color:#9B3A22;font-weight:500;margin-bottom:6px;letter-spacing:.5px">✗ AVOIDS</div>'+
+          p.avoids.map(function(a){return '<div style="font-size:12px;color:var(--esp);margin-bottom:3px">'+a+'</div>';}).join('')+
+        '</div>'+
+      '</div>'+
+      '<div style="text-align:center;background:#fff;border-radius:12px;padding:14px">'+
+        '<div style="font-size:44px;letter-spacing:8px;color:var(--esp);margin-bottom:4px">█▄█ ▄█▄</div>'+
+        '<div style="font-size:10px;color:var(--txt-m)">Scan to view full Brewly profile</div>'+
+      '</div>'+
+    '</div>'+
+    '<button class="btn" onclick="shareProfile()">📋 Copy Share Link</button>'+
+    '<button class="btn out" style="margin-top:8px" onclick="closeModal()">Done</button>'+
+  '</div></div>';
+}
+
+function buildModal(){
+  if(APP.modal==='qr') return buildQRModal();
+  return '';
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+function attachEvents(){ /* event handlers via onclick */ }
+function e(s){ return (s||'').toString().replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// Navigation
+function nav(s){
+  APP.currentScreen=s; APP.logVisible=false; APP.logSuccess=false;
+  APP.selectedCafe=null; APP._cafeFeedback=null;
+  if(s==='log'){ APP.logVisible=true; APP._logStep=1; APP._logData=null; }
+  render();
+}
+function goDiscover(){ nav('discover'); }
+function openLog(){ APP.logVisible=true; APP._logStep=1; APP._logData=null; render(); }
+function backHome(){ APP.logSuccess=false; APP.logData=null; APP.currentScreen='home'; render(); }
+
+// Onboarding
+function obStep(s){ APP._obStep=s; render(); }
+function obToggle(s,v){
+  var k='s'+s; APP._obSel=APP._obSel||{};
+  var arr=APP._obSel[k]||[];
+  APP._obSel[k]=arr.includes(v)?arr.filter(function(x){return x!==v;}):[...arr,v];
+  APP._obSel[v]=v; // shortcut for translations
+  render();
+}
+function finishOb(){ APP.onboarded=true; localStorage.setItem('brewly_onboarded','1'); render(); }
+
+// Log flow
+function ld(k,v){ APP._logData=APP._logData||{}; APP._logData[k]=v; render(); }
+function logBack(s){ if(s===1){ APP.logVisible=false; } else { APP._logStep=s-1; } render(); }
+function logNext(s){
+  var d=APP._logData||{};
+  if(s===1 && !d.name){ toast('Please enter a coffee name'); return; }
+  if(s===1 && !d.cafe){ toast('Please enter the café name'); return; }
+  APP._logStep=s+1; render();
+}
+function toggleFlavor(f){
+  var d=APP._logData=APP._logData||{}; d.flavors=d.flavors||[];
+  d.flavors=d.flavors.includes(f)?d.flavors.filter(function(x){return x!==f;}):[...d.flavors,f];
+  render();
+}
+function fillFromDB(id){
+  var b=COFFEE_DB.find(function(x){return x.id===id;});
+  if(!b) return;
+  APP._logData=APP._logData||{};
+  APP._logData.name=b.name;
+  APP._logData.acidity=Math.round(b.acidity);
+  APP._logData.body=Math.round(b.body);
+  APP._logData.sweetness=Math.round(b.sweetness);
+  APP._logData.fruitiness=Math.round(b.fruitiness);
+  APP._logData.intensity=Math.round(b.intensity);
+  APP._logData.flavors=b.flavors.slice();
+  toast('Pre-filled from database: '+b.name);
+  render();
+}
+function saveCoffeeLog(){
+  var d=APP._logData||{};
+  if(!d.name){ toast('Please enter a coffee name'); return; }
+  var entry={
+    id:Date.now(), name:d.name||'Unnamed', cafe:d.cafe||'Unknown', city:d.city||APP.user.city,
+    method:d.method||'V60', rating:d.rating||0, acidity:d.acidity||5, body:d.body||5,
+    sweetness:d.sweetness||5, intensity:d.intensity||5, fruitiness:d.fruitiness||5,
+    flavors:d.flavors||[], feedback:d.feedback||'', reorder:d.reorder,
+    notes:d.notes||'', date:'just now'
+  };
+  APP.logs.push(entry);
+  // Update taste profile (rolling avg)
+  var n=APP.logs.length;
+  var p=APP.tasteProfile;
+  p.acidity = +((p.acidity*(n-1)+entry.acidity)/n).toFixed(1);
+  p.body = +((p.body*(n-1)+entry.body)/n).toFixed(1);
+  p.sweetness = +((p.sweetness*(n-1)+entry.sweetness)/n).toFixed(1);
+  p.intensity = +((p.intensity*(n-1)+entry.intensity)/n).toFixed(1);
+  p.fruitiness = +((p.fruitiness*(n-1)+entry.fruitiness)/n).toFixed(1);
+  saveAll();
+  APP.logData=entry; APP.logVisible=false; APP.logSuccess=true; APP._logData=null; APP._logStep=1;
+  render();
+}
+
+// Discover
+function discFilter(f){ APP._discFilter=f; render(); }
+function discSearch(v){ APP._discSearch=v; }
+function toggleBeanDB(){ APP._showBeanDB=!APP._showBeanDB; render(); }
+function locateMe(){
+  if(!APP.mapsLoaded){ toast('Enable Google Maps first (Profile → Settings)'); return; }
+  getLocation(function(coords,err){
+    if(err){ toast('Location: '+err); return; }
+    toast('📍 Found your location!');
+    searchNearbyCafes(coords.latitude,coords.longitude,function(places,err2){
+      if(err2 || !places.length){ toast('No specialty cafés found nearby'); return; }
+      toast('Found '+places.length+' specialty cafés near you!');
+      render();
+    });
+  });
+}
+function nearMe(){ locateMe(); }
+function openGMaps(){
+  var url='https://www.google.com/maps/search/specialty+coffee+near+'+encodeURIComponent(APP.user.city);
+  window.open(url,'_blank');
+}
+
+// Café detail
+function selectCafe(id){
+  var place=APP.nearbyPlaces.find(function(p){return p.id===id;});
+  if(!place) return;
+  APP.selectedCafe=place; APP._cafeDetails=null; APP._cafeFeedback=null;
+  render();
+  if(APP.mapsLoaded && place.place_id){
+    getPlaceDetails(place.place_id, function(details){
+      APP._cafeDetails=details; render();
+    });
+  }
+}
+function clearCafe(){ APP.selectedCafe=null; APP._cafeDetails=null; render(); }
+function cafeFeedback(f){ APP._cafeFeedback=f; toast('Feedback sent to barista! 📬'); render(); }
+function saveCafe(){ toast('Café saved to favourites! ♡'); }
+function openGMapsForCafe(){
+  var c=APP.selectedCafe;
+  if(!c) return;
+  openInGoogleMaps(c);
+}
+
+// Profile
+function addLike(){
+  var inp=document.getElementById('add-like');
+  if(!inp || !inp.value.trim()) return;
+  APP.preferences.likes.push(inp.value.trim());
+  saveAll(); toast('Added to preferences!'); render();
+}
+function showQRModal(){ APP.modal='qr'; render(); }
+function closeModal(){ APP.modal=null; render(); }
+function shareProfile(){
+  var text='My Brewly taste profile: Loves '+APP.preferences.likes.slice(0,3).join(', ')+'. Avoids '+APP.preferences.avoids.join(', ')+'. brewly.app';
+  if(navigator.clipboard){ navigator.clipboard.writeText(text); }
+  toast('Profile link copied! 📋'); closeModal();
+}
+function refreshApiKey(){ APP.apiKey=''; localStorage.removeItem('brewly_gmaps_key'); render(); }
+
+// Barista
+function bTab(t){ APP._bTab=t; render(); }
+function addCustomerProfile(){
+  var n={id:Date.now(),name:'Walk-in customer',date:new Date().toLocaleDateString(),table:Math.ceil(Math.random()*15),likes:['Unknown'],avoids:[],confirmed:false,notes:''};
+  APP.savedCustomers.push(n); saveAll(); toast('New customer profile created'); render();
+}
+function updateCustomer(i,k,v){ APP.savedCustomers[i][k]=v; saveAll(); }
+function toggleConfirm(i){ APP.savedCustomers[i].confirmed=!APP.savedCustomers[i].confirmed; saveAll(); render(); }
+function deleteCustomer(i){ APP.savedCustomers.splice(i,1); saveAll(); toast('Profile removed'); render(); }
+function recommendForCustomer(i){
+  var c=APP.savedCustomers[i];
+  var wantsFruity=c.likes&&c.likes.some(function(l){return l.toLowerCase().includes('fruit')||l.toLowerCase().includes('citrus');});
+  var match=APP.beans.find(function(b){return b.active&&(wantsFruity?b.roast.includes('Light'):b.roast.includes('Medium'));});
+  toast(match?'Recommend: '+match.origin+' ('+match.process+')':'Try asking about their preferred balance first');
+}
+function showAddBean(){ APP._addingBean=true; APP._newBean={origin:'',process:'Washed',roast:'Light',roaster:'',stock:'Medium',tasting:''}; render(); }
+function cancelAddBean(){ APP._addingBean=false; APP._newBean=null; render(); }
+function updateNewBean(k,v){ APP._newBean=APP._newBean||{}; APP._newBean[k]=v; render(); }
+function saveNewBean(){
+  var nb=APP._newBean||{};
+  if(!nb.origin){ toast('Please enter bean origin/name'); return; }
+  APP.beans.push({id:Date.now(),origin:nb.origin,process:nb.process||'Washed',roast:nb.roast||'Light',roaster:nb.roaster||'',stock:nb.stock||'Medium',tasting:(nb.tasting||'').split(',').map(function(t){return t.trim();}).filter(Boolean),active:true});
+  APP._addingBean=false; APP._newBean=null; saveAll(); toast('Bean added to inventory! 🫘'); render();
+}
+function deleteBean(i){ APP.beans.splice(i,1); saveAll(); toast('Bean removed'); render(); }
+function updateBeanStock(i,v){ APP.beans[i].stock=v; saveAll(); render(); }
+function updateCafeProfile(k,v){ APP._cafeProfile=APP._cafeProfile||{}; APP._cafeProfile[k]=v; }
+function saveCafeProfile(){ saveAll(); toast('Café profile saved! ✓'); }
+
+// API Key
+function submitApiKey(){
+  var key=(document.getElementById('api-key-input')||{}).value||'';
+  if(!key||key.length<20){ document.getElementById('api-err').textContent='Please enter a valid API key (starts with AIza...)'; return; }
+  APP.apiKey=key; localStorage.setItem('brewly_gmaps_key',key);
+  render();
+  loadGoogleMaps(key);
+}
+function skipMaps(){
+  APP.apiKey='SKIP'; render();
+}
+
+// ── BOOT ──────────────────────────────────────────────────────
+render();
+if(APP.apiKey && APP.apiKey !== 'SKIP'){
+  loadGoogleMaps(APP.apiKey);
+}
+</script>
+</body>
+</html>

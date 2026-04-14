@@ -1,0 +1,497 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400&family=DM+Sans:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cr:#FAF7F2;--crd:#F2EDE3;--esp:#2C1810;--brn:#8B6355;--brnl:#C4A882;
+  --sage:#7A8C78;--sagep:#E8F0E6;--wht:#fff;--bdr:rgba(44,24,16,.10);--bdm:rgba(44,24,16,.18);
+  --tm:#9A8070;--tmd:#6B4E3D;
+}
+.frame{display:flex;justify-content:center;padding:24px 0 8px;background:transparent}
+.phone{width:320px;height:620px;background:var(--cr);border-radius:36px;overflow:hidden;display:flex;flex-direction:column;border:8px solid #1a0f0a;position:relative;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:20px;background:#1a0f0a;border-radius:0 0 14px 14px;z-index:50}
+.scr{flex:1;overflow:hidden;position:relative}
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;transition:opacity .25s,transform .25s}
+.view::-webkit-scrollbar{display:none}
+.view.out{opacity:0;transform:translateX(20px);pointer-events:none}
+.bnav{display:flex;background:var(--wht);border-top:.5px solid var(--bdr);padding:6px 0 8px;flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:9px;color:var(--tm);transition:color .2s}
+.nb.on{color:var(--esp)}.nb svg{width:18px;height:18px}
+.dot{width:3px;height:3px;border-radius:2px;background:var(--brn);opacity:0}.nb.on .dot{opacity:1}
+.pf{font-family:'Playfair Display',serif}
+.btn{width:100%;padding:12px;border-radius:12px;background:var(--esp);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
+.chip{display:inline-block;padding:4px 10px;border-radius:20px;font-size:10px;border:.5px solid var(--bdr);background:var(--cr);color:var(--esp);margin:2px;cursor:pointer}
+.chip.on{background:var(--esp);color:#fff;border-color:var(--esp)}
+.chip.sage{background:var(--sagep);color:var(--sage);border-color:rgba(122,140,120,.3)}
+.chip.red{background:#fdf0ed;color:#9b3a22;border-color:rgba(155,58,34,.2)}
+.sl{font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:8px}
+.inp{width:100%;background:var(--cr);border:.5px solid var(--bdr);border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--esp);outline:none;margin-bottom:10px}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:var(--bdm);outline:none;cursor:pointer;padding:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--esp);cursor:pointer}
+.pb{height:5px;background:var(--bdr);border-radius:3px;overflow:hidden}
+.pf2{height:100%;background:var(--sage);border-radius:3px}
+.card{background:var(--wht);border-radius:14px;border:.5px solid var(--bdr);overflow:hidden}
+.star{font-size:18px;cursor:pointer;color:rgba(44,24,16,.12)}.star.on{color:var(--brn)}
+.fade{animation:fd .2s ease}
+@keyframes fd{from{opacity:0}to{opacity:1}}
+</style>
+
+<div class="frame">
+  <div class="phone">
+    <div class="scr">
+
+      <!-- HOME -->
+      <div class="view fade" id="v-home">
+        <div style="background:var(--esp);padding:16px 16px 20px;color:#fff">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+            <div class="pf" style="font-size:18px">Brew<span style="font-style:italic;color:#C4A882">ly</span></div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);padding:4px 10px;border-radius:20px">📍 Johannesburg</div>
+          </div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:14px">Good morning, Alex ☀️</div>
+          <div style="background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(196,168,130,.08)"></div>
+            <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#C4A882;margin-bottom:6px">Today's Pick · 93% match</div>
+            <div class="pf" style="font-size:15px;margin-bottom:2px">Ethiopia Guji Natural</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:10px">Rosetta Roastery · JHB</div>
+            <div style="display:flex;gap:6px">
+              <span style="background:rgba(122,140,120,.3);color:#B2C4B0;font-size:9px;padding:3px 8px;border-radius:20px">Fruity</span>
+              <span style="background:rgba(122,140,120,.3);color:#B2C4B0;font-size:9px;padding:3px 8px;border-radius:20px">Light roast</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px 12px 0">
+          <div style="background:var(--wht);border-radius:10px;padding:10px 8px;text-align:center;border:.5px solid var(--bdr)"><div class="pf" style="font-size:20px;color:var(--esp)">23</div><div style="font-size:9px;color:var(--tm);margin-top:1px">logged</div></div>
+          <div style="background:var(--wht);border-radius:10px;padding:10px 8px;text-align:center;border:.5px solid var(--bdr)"><div class="pf" style="font-size:20px;color:var(--esp)">8</div><div style="font-size:9px;color:var(--tm);margin-top:1px">cafés</div></div>
+          <div style="background:var(--wht);border-radius:10px;padding:10px 8px;text-align:center;border:.5px solid var(--bdr)"><div class="pf" style="font-size:20px;color:var(--esp)">4.1</div><div style="font-size:9px;color:var(--tm);margin-top:1px">avg ★</div></div>
+        </div>
+        <div style="padding:12px"><button class="btn" onclick="goTo('log')">+ Log a Coffee</button></div>
+        <div style="padding:0 12px 12px">
+          <div class="sl">Recent coffees</div>
+          <div class="card">
+            <div style="padding:10px 12px;border-bottom:.5px solid var(--bdr);display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:8px;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">☕</div>
+              <div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--esp)">Ethiopia Guji Natural</div><div style="font-size:10px;color:var(--tm)">Rosetta · V60</div></div>
+              <div style="font-size:11px;color:var(--brn)">★★★★★</div>
+            </div>
+            <div style="padding:10px 12px;border-bottom:.5px solid var(--bdr);display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:8px;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🫖</div>
+              <div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--esp)">Kenya AB Nyeri</div><div style="font-size:10px;color:var(--tm)">Father Coffee · Pour over</div></div>
+              <div style="font-size:11px;color:var(--brn)">★★★★☆</div>
+            </div>
+            <div style="padding:10px 12px;display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:8px;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">☕</div>
+              <div style="flex:1"><div style="font-size:12px;font-weight:500;color:var(--esp)">Colombia Washed</div><div style="font-size:10px;color:var(--tm)">Blank Slate · Espresso</div></div>
+              <div style="font-size:11px;color:var(--brn)">★★★★☆</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISCOVER -->
+      <div class="view out" id="v-discover">
+        <div style="padding:16px 14px 10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="pf" style="font-size:20px;color:var(--esp)">Discover</div>
+            <div style="font-size:10px;color:var(--tm)">📍 Johannesburg</div>
+          </div>
+          <input class="inp" placeholder="Search cafés, origins, flavours..." style="margin-bottom:8px">
+          <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px">
+            <div class="chip on">All</div><div class="chip">Filter</div><div class="chip">Espresso</div><div class="chip">Nearby</div>
+          </div>
+        </div>
+        <div style="margin:0 12px 12px;background:var(--esp);border-radius:14px;padding:14px;color:#fff;cursor:pointer">
+          <div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#C4A882;margin-bottom:6px">✨ Live Feature</div>
+          <div class="pf" style="font-size:15px;margin-bottom:4px">Discover Specialty Near Me</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5)">Find real cafés matching your taste profile right now — uses live GPS</div>
+        </div>
+        <div style="margin:0 12px 12px;border-radius:14px;overflow:hidden;height:130px;background:#1e2a1e;position:relative;display:flex;align-items:center;justify-content:center">
+          <svg width="100%" height="100%" viewBox="0 0 296 130" xmlns="http://www.w3.org/2000/svg">
+            <rect width="296" height="130" fill="#1e2a1e"/>
+            <line x1="0" y1="30" x2="296" y2="30" stroke="#2d3d2c" stroke-width=".5"/>
+            <line x1="0" y1="65" x2="296" y2="65" stroke="#2d3d2c" stroke-width=".5"/>
+            <line x1="0" y1="100" x2="296" y2="100" stroke="#2d3d2c" stroke-width=".5"/>
+            <line x1="60" y1="0" x2="60" y2="130" stroke="#2d3d2c" stroke-width=".5"/>
+            <line x1="148" y1="0" x2="148" y2="130" stroke="#2d3d2c" stroke-width=".5"/>
+            <line x1="236" y1="0" x2="236" y2="130" stroke="#2d3d2c" stroke-width=".5"/>
+            <ellipse cx="148" cy="65" rx="60" ry="40" fill="none" stroke="#2d3d2c" stroke-width="1"/>
+            <circle cx="148" cy="65" r="6" fill="#C4A882"/>
+            <circle cx="110" cy="45" r="5" fill="#7A8C78"/>
+            <circle cx="185" cy="80" r="5" fill="#7A8C78"/>
+            <circle cx="130" cy="90" r="4" fill="#7A8C78"/>
+            <rect x="115" y="28" width="66" height="14" rx="4" fill="rgba(250,247,242,.9)"/>
+            <text x="148" y="38.5" text-anchor="middle" font-size="7" fill="#2C1810" font-family="DM Sans,sans-serif">Father Coffee 0.8km</text>
+            <rect x="186" y="63" width="60" height="14" rx="4" fill="rgba(250,247,242,.85)"/>
+            <text x="216" y="73.5" text-anchor="middle" font-size="7" fill="#2C1810" font-family="DM Sans,sans-serif">Rosetta 1.2km</text>
+          </svg>
+          <div style="position:absolute;top:8px;left:8px;background:rgba(44,24,16,.7);color:#fff;border-radius:6px;padding:3px 8px;font-size:9px">Map · Johannesburg</div>
+          <div style="position:absolute;bottom:8px;right:8px;background:rgba(250,247,242,.92);border-radius:6px;padding:4px 9px;font-size:9px;color:var(--esp);font-weight:500">🗺 Open Maps</div>
+        </div>
+        <div style="margin:0 12px 10px">
+          <div class="sl">3 specialty cafés near you (live)</div>
+          <div class="card" style="margin-bottom:10px">
+            <div style="background:#2C1810;height:70px;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative">
+              ☕
+              <div style="position:absolute;top:6px;right:6px;background:#7A8C78;color:#fff;font-size:8px;font-weight:500;padding:3px 8px;border-radius:20px">97% match</div>
+              <div style="position:absolute;top:6px;left:6px;background:#2E7D32;color:#fff;font-size:8px;padding:3px 7px;border-radius:20px">Open</div>
+            </div>
+            <div style="padding:10px 12px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+                <div><div class="pf" style="font-size:14px;color:var(--esp)">Father Coffee</div><div style="font-size:10px;color:var(--tm)">Maboneng · 0.8km away</div></div>
+                <div style="text-align:right"><div style="font-size:10px;color:var(--brn)">★ 4.8</div><div style="font-size:9px;color:var(--tm)">312 reviews</div></div>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <div style="background:var(--cr);border:.5px solid var(--bdr);border-radius:20px;padding:3px 8px;font-size:9px;color:var(--tmd)">High-acidity filters</div>
+                <div style="background:var(--cr);border:.5px solid var(--bdr);border-radius:20px;padding:3px 8px;font-size:9px;color:var(--tmd)">African origins</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div style="background:#2A3820;height:70px;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative">
+              🌿
+              <div style="position:absolute;top:6px;right:6px;background:#7A8C78;color:#fff;font-size:8px;font-weight:500;padding:3px 8px;border-radius:20px">91% match</div>
+            </div>
+            <div style="padding:10px 12px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+                <div><div class="pf" style="font-size:14px;color:var(--esp)">Rosetta Roastery</div><div style="font-size:10px;color:var(--tm)">Cape Town / JHB · 1.2km</div></div>
+                <div style="text-align:right"><div style="font-size:10px;color:var(--brn)">★ 4.7</div><div style="font-size:9px;color:var(--tm)">489 reviews</div></div>
+              </div>
+              <div style="display:flex;gap:5px">
+                <div style="background:var(--cr);border:.5px solid var(--bdr);border-radius:20px;padding:3px 8px;font-size:9px;color:var(--tmd)">Fruity Ethiopians</div>
+                <div style="background:var(--cr);border:.5px solid var(--bdr);border-radius:20px;padding:3px 8px;font-size:9px;color:var(--tmd)">V60 specialist</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG -->
+      <div class="view out" id="v-log">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 14px 10px">
+          <div style="background:var(--crd);border:.5px solid var(--bdr);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px" onclick="goTo('home')">←</div>
+          <div class="pf" style="font-size:16px;color:var(--esp)" id="log-title">Log a Coffee</div>
+          <div style="display:flex;gap:4px;margin-left:auto">
+            <div style="height:3px;width:18px;border-radius:2px;background:var(--esp)" id="d1"></div>
+            <div style="height:3px;width:6px;border-radius:2px;background:var(--bdr)" id="d2"></div>
+            <div style="height:3px;width:6px;border-radius:2px;background:var(--bdr)" id="d3"></div>
+          </div>
+        </div>
+        <div style="padding:0 14px" id="log-step-1">
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:5px">Coffee name</div>
+          <input class="inp" id="log-name" placeholder="e.g. Ethiopia Guji Natural">
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:5px">Café</div>
+          <input class="inp" id="log-cafe" placeholder="e.g. Father Coffee">
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:5px">Brew method</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
+            <div onclick="selMethod(this)" style="background:var(--esp);color:#fff;border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;border:.5px solid var(--esp)"><div style="font-size:16px;margin-bottom:3px">☕</div><div style="font-size:10px;font-weight:500">Espresso</div></div>
+            <div onclick="selMethod(this)" style="background:var(--cr);border:.5px solid var(--bdr);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer"><div style="font-size:16px;margin-bottom:3px">🫖</div><div style="font-size:10px;font-weight:500;color:var(--esp)">V60</div></div>
+            <div onclick="selMethod(this)" style="background:var(--cr);border:.5px solid var(--bdr);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer"><div style="font-size:16px;margin-bottom:3px">🥛</div><div style="font-size:10px;font-weight:500;color:var(--esp)">Milk drink</div></div>
+            <div onclick="selMethod(this)" style="background:var(--cr);border:.5px solid var(--bdr);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer"><div style="font-size:16px;margin-bottom:3px">⬡</div><div style="font-size:10px;font-weight:500;color:var(--esp)">Aeropress</div></div>
+            <div onclick="selMethod(this)" style="background:var(--cr);border:.5px solid var(--bdr);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer"><div style="font-size:16px;margin-bottom:3px">🧊</div><div style="font-size:10px;font-weight:500;color:var(--esp)">Cold brew</div></div>
+            <div onclick="selMethod(this)" style="background:var(--cr);border:.5px solid var(--bdr);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer"><div style="font-size:16px;margin-bottom:3px">🪣</div><div style="font-size:10px;font-weight:500;color:var(--esp)">Batch</div></div>
+          </div>
+          <button class="btn" style="font-size:12px;padding:11px" onclick="logStep2()">Next: Rate the taste →</button>
+        </div>
+        <div style="padding:0 14px;display:none" id="log-step-2">
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:6px">Overall rating</div>
+          <div style="display:flex;gap:3px;margin-bottom:14px" id="stars">
+            <span class="star" onclick="setStar(1)">★</span><span class="star" onclick="setStar(2)">★</span><span class="star on" onclick="setStar(3)">★</span><span class="star on" onclick="setStar(4)">★</span><span class="star on" onclick="setStar(5)">★</span>
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:500;color:var(--esp)">Acidity</span><span style="font-size:11px;color:var(--brn);font-weight:500" id="sv-a">7</span></div>
+            <input type="range" min="1" max="10" step="1" value="7" oninput="document.getElementById('sv-a').textContent=this.value">
+            <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:var(--tm)">Smooth</span><span style="font-size:9px;color:var(--tm)">Bright</span></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:500;color:var(--esp)">Body</span><span style="font-size:11px;color:var(--brn);font-weight:500" id="sv-b">4</span></div>
+            <input type="range" min="1" max="10" step="1" value="4" oninput="document.getElementById('sv-b').textContent=this.value">
+            <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:var(--tm)">Tea-like</span><span style="font-size:9px;color:var(--tm)">Syrupy</span></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:500;color:var(--esp)">Sweetness</span><span style="font-size:11px;color:var(--brn);font-weight:500" id="sv-s">6</span></div>
+            <input type="range" min="1" max="10" step="1" value="6" oninput="document.getElementById('sv-s').textContent=this.value">
+            <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:var(--tm)">Dry</span><span style="font-size:9px;color:var(--tm)">Very sweet</span></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:500;color:var(--esp)">Fruitiness</span><span style="font-size:11px;color:var(--brn);font-weight:500" id="sv-f">8</span></div>
+            <input type="range" min="1" max="10" step="1" value="8" oninput="document.getElementById('sv-f').textContent=this.value">
+            <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:var(--tm)">None</span><span style="font-size:9px;color:var(--tm)">Very fruity</span></div>
+          </div>
+          <button class="btn" style="font-size:12px;padding:11px;margin-bottom:14px" onclick="logStep3()">Next: Flavour notes →</button>
+        </div>
+        <div style="padding:0 14px;display:none" id="log-step-3">
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:6px">What did you taste?</div>
+          <div style="display:flex;flex-wrap:wrap;margin-bottom:12px">
+            <span class="chip on">Citrus</span><span class="chip">Berry</span><span class="chip on">Stone fruit</span><span class="chip">Chocolate</span><span class="chip">Caramel</span><span class="chip">Floral</span><span class="chip">Honey</span><span class="chip">Nutty</span>
+          </div>
+          <div style="background:var(--sagep);border-radius:10px;padding:11px 13px;border-left:2px solid var(--sage);margin-bottom:12px">
+            <div style="font-size:10px;color:var(--sage);font-weight:500;margin-bottom:3px">☕ Brewly Insight</div>
+            <div style="font-size:11px;color:var(--esp);line-height:1.5;font-style:italic">High acidity + fruity notes = classic washed African profile. You're developing a clear preference.</div>
+          </div>
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:6px">Overall balance</div>
+          <div style="display:flex;gap:5px;margin-bottom:12px">
+            <button style="flex:1;padding:8px 4px;border:.5px solid var(--bdr);border-radius:8px;background:var(--cr);font-family:DM Sans,sans-serif;font-size:10px;color:var(--esp);cursor:pointer">Too bitter</button>
+            <button style="flex:1;padding:8px 4px;border:.5px solid var(--esp);border-radius:8px;background:var(--esp);font-family:DM Sans,sans-serif;font-size:10px;color:#fff;cursor:pointer">Just right</button>
+            <button style="flex:1;padding:8px 4px;border:.5px solid var(--bdr);border-radius:8px;background:var(--cr);font-family:DM Sans,sans-serif;font-size:10px;color:var(--esp);cursor:pointer">Too sour</button>
+          </div>
+          <button class="btn" style="font-size:12px;padding:11px" onclick="logSave()">☕ Save to my profile</button>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="view out" id="v-profile">
+        <div style="background:var(--esp);padding:18px 16px 28px;color:#fff">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div style="width:44px;height:44px;border-radius:50%;background:rgba(196,168,130,.2);border:1px solid rgba(196,168,130,.35);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px">☕</div>
+              <div class="pf" style="font-size:18px;margin-bottom:5px">Alex's Profile</div>
+              <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(122,140,120,.3);border:.5px solid var(--sage);color:#B2C4B0;font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:8px">✦ Flavour Explorer</div>
+              <div style="font-size:10px;color:rgba(255,255,255,.4)">23 coffees · Johannesburg</div>
+            </div>
+            <button onclick="goTo('barista')" style="background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.15);border-radius:8px;padding:7px 10px;color:#fff;font-family:DM Sans,sans-serif;font-size:10px;cursor:pointer">Barista →</button>
+          </div>
+          <div style="margin-top:12px">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,.4);margin-bottom:5px"><span>Flavour Explorer</span><span>55% to Brew Guide</span></div>
+            <div class="pb"><div class="pf2" style="width:55%"></div></div>
+          </div>
+        </div>
+        <div style="background:var(--wht);border-radius:14px;border:.5px solid var(--bdr);margin:-14px 12px 12px;padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="pf" style="font-size:14px;color:var(--esp)">Taste Radar</div>
+            <div style="font-size:9px;color:var(--tm)">Based on 23 logs</div>
+          </div>
+          <svg viewBox="0 0 180 160" width="180" height="160" style="display:block;margin:0 auto">
+            <polygon points="90,15 155,57 132,128 48,128 25,57" fill="none" stroke="rgba(44,24,16,.08)" stroke-width=".8"/>
+            <polygon points="90,34 138,66 120,113 60,113 42,66" fill="none" stroke="rgba(44,24,16,.08)" stroke-width=".7"/>
+            <polygon points="90,53 121,75 108,98 72,98 59,75" fill="none" stroke="rgba(44,24,16,.08)" stroke-width=".6"/>
+            <line x1="90" y1="15" x2="90" y2="128" stroke="rgba(44,24,16,.08)" stroke-width=".7"/>
+            <line x1="90" y1="71" x2="155" y2="57" stroke="rgba(44,24,16,.08)" stroke-width=".7"/>
+            <line x1="90" y1="71" x2="132" y2="128" stroke="rgba(44,24,16,.08)" stroke-width=".7"/>
+            <line x1="90" y1="71" x2="48" y2="128" stroke="rgba(44,24,16,.08)" stroke-width=".7"/>
+            <line x1="90" y1="71" x2="25" y2="57" stroke="rgba(44,24,16,.08)" stroke-width=".7"/>
+            <polygon points="90,24 148,62 124,120 56,120 32,62" fill="rgba(122,140,120,.18)" stroke="#7A8C78" stroke-width="1.8"/>
+            <circle cx="90" cy="24" r="3.5" fill="#7A8C78"/>
+            <circle cx="148" cy="62" r="3.5" fill="#7A8C78"/>
+            <circle cx="124" cy="120" r="3.5" fill="#7A8C78"/>
+            <circle cx="56" cy="120" r="3.5" fill="#7A8C78"/>
+            <circle cx="32" cy="62" r="3.5" fill="#7A8C78"/>
+            <text x="90" y="10" text-anchor="middle" font-size="8" fill="#9A8070" font-family="DM Sans,sans-serif">Acidity</text>
+            <text x="162" y="60" text-anchor="start" font-size="8" fill="#9A8070" font-family="DM Sans,sans-serif">Fruitiness</text>
+            <text x="128" y="140" text-anchor="middle" font-size="8" fill="#9A8070" font-family="DM Sans,sans-serif">Sweetness</text>
+            <text x="52" y="140" text-anchor="middle" font-size="8" fill="#9A8070" font-family="DM Sans,sans-serif">Body</text>
+            <text x="18" y="60" text-anchor="end" font-size="8" fill="#9A8070" font-family="DM Sans,sans-serif">Intensity</text>
+          </svg>
+        </div>
+        <div style="padding:0 12px">
+          <div class="sl">You enjoy</div>
+          <div style="margin-bottom:12px">
+            <span class="chip sage">Bright acidity</span><span class="chip sage">Fruity</span><span class="chip sage">African origins</span><span class="chip sage">Light roasts</span>
+          </div>
+          <div class="sl">You avoid</div>
+          <div style="margin-bottom:12px">
+            <span class="chip red">Heavy bitterness</span><span class="chip red">Dark roasts</span>
+          </div>
+        </div>
+        <div style="background:var(--esp);border-radius:14px;margin:0 12px 12px;padding:14px;display:flex;align-items:center;gap:12px;color:#fff;cursor:pointer" onclick="showQR()">
+          <div style="width:44px;height:44px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--esp)"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="5" y="5" width="3" height="3" fill="#fff"/><rect x="16" y="5" width="3" height="3" fill="#fff"/><rect x="5" y="16" width="3" height="3" fill="#fff"/><rect x="14" y="14" width="2" height="2"/><rect x="18" y="14" width="2" height="2"/><rect x="14" y="18" width="2" height="2"/><rect x="18" y="18" width="2" height="2"/></svg>
+          </div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500;margin-bottom:3px">Show to Barista</div><div style="font-size:10px;color:rgba(255,255,255,.5)">Share your taste profile instantly</div></div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- BARISTA -->
+      <div class="view out" id="v-barista">
+        <div style="background:linear-gradient(135deg,#1A3A2C,#2C1810);padding:18px 14px 16px;color:#fff">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.15);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px" onclick="goTo('profile')">←</div>
+            <div class="pf" style="font-size:18px">Barista Portal</div>
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <button onclick="baristaTab(this,'dashboard')" style="padding:7px 12px;border-radius:20px;background:#fff;color:var(--esp);border:none;font-family:DM Sans,sans-serif;font-size:10px;font-weight:500;cursor:pointer" class="btab active">Dashboard</button>
+            <button onclick="baristaTab(this,'customers')" style="padding:7px 12px;border-radius:20px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border:none;font-family:DM Sans,sans-serif;font-size:10px;cursor:pointer" class="btab">Customers</button>
+            <button onclick="baristaTab(this,'inventory')" style="padding:7px 12px;border-radius:20px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border:none;font-family:DM Sans,sans-serif;font-size:10px;cursor:pointer" class="btab">Bean Stock</button>
+            <button onclick="baristaTab(this,'cafe')" style="padding:7px 12px;border-radius:20px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border:none;font-family:DM Sans,sans-serif;font-size:10px;cursor:pointer" class="btab">Café</button>
+          </div>
+        </div>
+        <div id="btab-dashboard" style="padding:14px">
+          <div class="sl">Insights — last 30 days</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+            <div style="background:var(--wht);border-radius:10px;padding:12px;border:.5px solid var(--bdr)"><div style="font-size:18px;margin-bottom:4px">📲</div><div class="pf" style="font-size:20px;color:var(--esp)">142</div><div style="font-size:9px;color:var(--tm)">Total QR scans</div></div>
+            <div style="background:var(--wht);border-radius:10px;padding:12px;border:.5px solid var(--bdr)"><div style="font-size:18px;margin-bottom:4px">🫐</div><div class="pf" style="font-size:20px;color:var(--esp)">Fruity</div><div style="font-size:9px;color:var(--tm)">Top taste ask</div></div>
+          </div>
+          <div class="sl">Top requests</div>
+          <div class="card" style="padding:0">
+            <div style="padding:10px 12px;border-bottom:.5px solid var(--bdr);display:flex;align-items:center;gap:8px"><div style="font-size:11px;font-weight:500;color:var(--esp);flex:1">#1 Fruity</div><div class="pb" style="flex:2"><div class="pf2" style="width:90%"></div></div><div style="font-size:10px;color:var(--tm);margin-left:6px">90%</div></div>
+            <div style="padding:10px 12px;border-bottom:.5px solid var(--bdr);display:flex;align-items:center;gap:8px"><div style="font-size:11px;font-weight:500;color:var(--esp);flex:1">#2 Bright</div><div class="pb" style="flex:2"><div class="pf2" style="width:70%"></div></div><div style="font-size:10px;color:var(--tm);margin-left:6px">70%</div></div>
+            <div style="padding:10px 12px;display:flex;align-items:center;gap:8px"><div style="font-size:11px;font-weight:500;color:var(--esp);flex:1">#3 Citrus</div><div class="pb" style="flex:2"><div class="pf2" style="width:50%"></div></div><div style="font-size:10px;color:var(--tm);margin-left:6px">50%</div></div>
+          </div>
+        </div>
+        <div id="btab-customers" style="padding:14px;display:none">
+          <div class="sl">Saved customer profiles</div>
+          <div style="background:var(--wht);border-radius:12px;border:.5px solid var(--bdr);padding:13px;margin-bottom:10px">
+            <div style="font-size:12px;font-weight:500;color:var(--esp);margin-bottom:3px">Regular (Table 3)</div>
+            <div style="font-size:10px;color:var(--tm);margin-bottom:8px">Today · confirmed</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+              <span style="background:var(--sagep);color:var(--sage);font-size:10px;padding:3px 8px;border-radius:20px">✓ Fruity</span>
+              <span style="background:var(--sagep);color:var(--sage);font-size:10px;padding:3px 8px;border-radius:20px">✓ Bright</span>
+              <span style="background:#fdf0ed;color:#9b3a22;font-size:10px;padding:3px 8px;border-radius:20px">✗ Bitter</span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button style="flex:1;padding:8px;border-radius:8px;background:var(--esp);color:#fff;border:none;font-family:DM Sans,sans-serif;font-size:10px;cursor:pointer">☕ Recommend</button>
+              <button style="flex:1;padding:8px;border-radius:8px;background:var(--cr);color:var(--esp);border:.5px solid var(--bdr);font-family:DM Sans,sans-serif;font-size:10px;cursor:pointer">✓ Confirm</button>
+            </div>
+          </div>
+        </div>
+        <div id="btab-inventory" style="padding:14px;display:none">
+          <div class="sl">Bean inventory</div>
+          <div style="padding:11px 0;border-bottom:.5px solid var(--bdr);display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🫘</div>
+            <div style="flex:1"><div style="font-size:11px;font-weight:500;color:var(--esp)">Ethiopia Yirgacheffe</div><div style="font-size:9px;color:var(--tm)">Washed · Light · Rosetta</div></div>
+            <span style="background:var(--sagep);color:var(--sage);font-size:9px;padding:3px 8px;border-radius:20px;font-weight:500">High</span>
+          </div>
+          <div style="padding:11px 0;border-bottom:.5px solid var(--bdr);display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🫘</div>
+            <div style="flex:1"><div style="font-size:11px;font-weight:500;color:var(--esp)">Kenya Nyeri AA</div><div style="font-size:9px;color:var(--tm)">Washed · Light-Medium</div></div>
+            <span style="background:var(--crd);color:var(--tm);font-size:9px;padding:3px 8px;border-radius:20px;font-weight:500">Medium</span>
+          </div>
+          <div style="padding:11px 0;display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:8px;background:var(--cr);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🫘</div>
+            <div style="flex:1"><div style="font-size:11px;font-weight:500;color:var(--esp)">Colombia El Paraiso</div><div style="font-size:9px;color:var(--tm)">Natural · Medium</div></div>
+            <span style="background:#fdf0ed;color:#9b3a22;font-size:9px;padding:3px 8px;border-radius:20px;font-weight:500">Low</span>
+          </div>
+        </div>
+        <div id="btab-cafe" style="padding:14px;display:none">
+          <div class="sl">Café profile</div>
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:4px">Café name</div>
+          <input class="inp" value="My Café">
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:4px">Address</div>
+          <input class="inp" placeholder="123 Main St, City">
+          <div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--tm);margin-bottom:4px">Hours</div>
+          <input class="inp" value="Mon–Sat 7–17:00">
+          <div style="background:var(--sagep);border-radius:10px;padding:11px 13px;border-left:2px solid var(--sage);margin-bottom:12px">
+            <div style="font-size:10px;color:var(--sage);font-weight:500;margin-bottom:3px">✓ Verification status</div>
+            <div style="font-size:10px;color:var(--esp)">Profile submitted. Verified cafés show a ✓ badge in Discover.</div>
+          </div>
+          <button class="btn" style="font-size:12px;padding:11px">Save Café Profile</button>
+        </div>
+      </div>
+
+      <!-- QR MODAL -->
+      <div id="qr-modal" style="display:none;position:absolute;inset:0;background:rgba(20,10,6,.6);z-index:100;align-items:flex-end">
+        <div style="background:var(--cr);border-radius:20px 20px 0 0;width:100%;padding:16px">
+          <div style="width:36px;height:3px;background:var(--bdm);border-radius:2px;margin:0 auto 16px"></div>
+          <div class="pf" style="font-size:18px;color:var(--esp);text-align:center;margin-bottom:4px">Alex's Taste Card</div>
+          <div style="font-size:11px;color:var(--tm);text-align:center;margin-bottom:14px">Show this to your barista</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <div style="flex:1;background:var(--sagep);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:9px;color:var(--sage);font-weight:500;margin-bottom:6px;letter-spacing:.5px">✓ PREFERS</div>
+              <div style="font-size:10px;color:var(--esp);margin-bottom:2px">Bright acidity</div>
+              <div style="font-size:10px;color:var(--esp);margin-bottom:2px">Fruity</div>
+              <div style="font-size:10px;color:var(--esp)">African origins</div>
+            </div>
+            <div style="flex:1;background:#fdf0ed;border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:9px;color:#9b3a22;font-weight:500;margin-bottom:6px;letter-spacing:.5px">✗ AVOIDS</div>
+              <div style="font-size:10px;color:var(--esp);margin-bottom:2px">Heavy bitterness</div>
+              <div style="font-size:10px;color:var(--esp)">Dark roasts</div>
+            </div>
+          </div>
+          <div style="text-align:center;background:#fff;border-radius:10px;padding:12px;margin-bottom:12px">
+            <div style="font-size:36px;letter-spacing:6px;color:var(--esp);margin-bottom:3px">█▄█ ▄█▄</div>
+            <div style="font-size:9px;color:var(--tm)">Scan to view full Brewly profile</div>
+          </div>
+          <button class="btn" style="font-size:12px;padding:11px;margin-bottom:8px" onclick="hideQR()">Copy Share Link</button>
+          <button onclick="hideQR()" style="width:100%;padding:10px;background:transparent;border:.5px solid var(--bdm);border-radius:10px;font-family:DM Sans,sans-serif;font-size:12px;color:var(--tmd);cursor:pointer">Done</button>
+        </div>
+      </div>
+
+    </div>
+
+    <nav class="bnav">
+      <button class="nb on" id="nb-home" onclick="goTo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home<div class="dot"></div>
+      </button>
+      <button class="nb" id="nb-discover" onclick="goTo('discover')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Discover<div class="dot"></div>
+      </button>
+      <button class="nb" id="nb-log" onclick="goTo('log')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Log<div class="dot"></div>
+      </button>
+      <button class="nb" id="nb-profile" onclick="goTo('profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile<div class="dot"></div>
+      </button>
+      <button class="nb" id="nb-barista" onclick="goTo('barista')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l1-4h16l1 4"/><rect x="2" y="9" width="20" height="13" rx="2"/><line x1="8" y1="9" x2="8" y2="22"/><line x1="16" y1="9" x2="16" y2="22"/></svg>Barista<div class="dot"></div>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<script>
+var current = 'home';
+var views = ['home','discover','log','profile','barista'];
+
+function goTo(screen) {
+  document.getElementById('v-'+current).classList.add('out');
+  document.getElementById('nb-'+current).classList.remove('on');
+  current = screen;
+  document.getElementById('v-'+current).classList.remove('out');
+  document.getElementById('nb-'+current).classList.add('on');
+  if(screen === 'log') { showLogStep(1); }
+}
+
+function selMethod(el) {
+  el.parentElement.querySelectorAll('div').forEach(function(d){
+    d.style.background = 'var(--cr)'; d.style.borderColor = 'var(--bdr)';
+    d.querySelector('div:last-child').style.color = 'var(--esp)';
+  });
+  el.style.background = 'var(--esp)'; el.style.borderColor = 'var(--esp)';
+  el.querySelector('div:last-child').style.color = '#fff';
+}
+
+function setStar(n) {
+  document.querySelectorAll('.star').forEach(function(s,i){ s.className = 'star'+(i<n?' on':''); });
+}
+
+var logStepN = 1;
+function showLogStep(n) {
+  logStepN = n;
+  [1,2,3].forEach(function(i){
+    document.getElementById('log-step-'+i).style.display = i===n ? 'block' : 'none';
+    document.getElementById('d'+i).style.width = (i===n ? 18 : 6)+'px';
+    document.getElementById('d'+i).style.background = i<=n ? 'var(--esp)' : 'var(--bdr)';
+  });
+  var titles = ['Log a Coffee','Rate the taste','Flavour & feedback'];
+  document.getElementById('log-title').textContent = titles[n-1];
+}
+function logStep2() { showLogStep(2); }
+function logStep3() { showLogStep(3); }
+function logSave() {
+  goTo('home');
+  setTimeout(function(){
+    var t = document.createElement('div');
+    t.style.cssText = 'position:absolute;bottom:70px;left:50%;transform:translateX(-50%);background:var(--esp);color:#fff;padding:10px 18px;border-radius:20px;font-size:11px;font-weight:500;z-index:999;white-space:nowrap;font-family:DM Sans,sans-serif';
+    t.textContent = '☕ Coffee logged!';
+    document.querySelector('.phone').appendChild(t);
+    setTimeout(function(){ t.remove(); }, 2500);
+  }, 200);
+}
+
+function baristaTab(btn, tab) {
+  document.querySelectorAll('.btab').forEach(function(b){
+    b.style.background = 'rgba(255,255,255,.12)'; b.style.color = 'rgba(255,255,255,.7)';
+  });
+  btn.style.background = '#fff'; btn.style.color = 'var(--esp)';
+  ['dashboard','customers','inventory','cafe'].forEach(function(t){
+    document.getElementById('btab-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+function showQR() {
+  var m = document.getElementById('qr-modal');
+  m.style.display = 'flex';
+}
+function hideQR() {
+  document.getElementById('qr-modal').style.display = 'none';
+}
+</script>

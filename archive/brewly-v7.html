@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Brewly</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#120B06;overflow:hidden;-webkit-font-smoothing:antialiased}
+:root{
+  --cr:#FAF8F3;--cr2:#F2EDE3;--cr3:#E8DFD0;
+  --ink:#1E0F07;--ink2:#3D2010;--ink3:#6B4030;
+  --gld:#C8974A;--gld2:#E8C07A;--gld3:#F5E4C0;
+  --sge:#6D8C6A;--sge2:#9DB89A;--sge3:#E2F0DF;
+  --rst:#A83820;--rst2:#D4614A;--rst3:#FCEAE6;
+  --b:rgba(30,15,7,.08);--b2:rgba(30,15,7,.14);--b3:rgba(30,15,7,.22);
+  --sh:0 1px 8px rgba(30,15,7,.06);--sh2:0 4px 20px rgba(30,15,7,.10);--sh3:0 12px 40px rgba(30,15,7,.15);
+}
+body{display:flex;align-items:center;justify-content:center}
+.shell{width:390px;height:820px;background:var(--cr);border-radius:32px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.7)}
+.view{flex:1;overflow-y:auto;overflow-x:hidden}.view::-webkit-scrollbar{display:none}
+.nav{display:flex;background:#fff;border-top:.5px solid var(--b2);padding:7px 0 9px;flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;background:none;border:none;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);cursor:pointer}
+.nb.on{color:var(--ink)}.nb svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5}
+.pip{width:4px;height:4px;border-radius:2px;background:var(--gld);opacity:0;margin-top:1px}.nb.on .pip{opacity:1}
+.serif{font-family:'Cormorant Garamond',serif}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-dk{background:var(--ink);color:#fff}.btn-sge{background:var(--sge);color:#fff}.btn-gd{background:var(--gld);color:#fff}.btn-out{background:transparent;border:.5px solid var(--b3);color:var(--ink)}
+.inp{width:100%;padding:11px 14px;border-radius:10px;border:.5px solid var(--b2);background:var(--cr2);font-size:14px;color:var(--ink);outline:none;font-family:'Inter',sans-serif}
+.inp:focus{border-color:var(--gld);background:#fff}.inp::placeholder{color:var(--ink3)}
+.ta{width:100%;padding:11px 14px;border-radius:10px;border:.5px solid var(--b2);background:var(--cr2);font-size:13px;color:var(--ink);outline:none;font-family:'Inter',sans-serif;resize:none;min-height:72px;line-height:1.5}
+.ta:focus{border-color:var(--gld);background:#fff}
+.chip{display:inline-block;padding:6px 12px;border-radius:999px;font-size:11px;border:.5px solid var(--b2);background:var(--cr2);color:var(--ink);cursor:pointer;margin:3px;transition:all .15s;font-weight:500}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}.chip.sge{background:var(--sge3);color:var(--sge);border-color:rgba(109,140,106,.3)}.chip.gld{background:var(--gld3);color:var(--ink2);border-color:rgba(200,151,74,.35)}.chip.rst{background:var(--rst3);color:var(--rst);border-color:rgba(168,56,32,.25)}
+.mb{position:absolute;inset:0;background:rgba(18,11,6,.58);z-index:200;display:flex;align-items:flex-end}
+.ms{background:var(--cr);border-radius:24px 24px 0 0;width:100%;max-height:92%;overflow-y:auto;padding:20px 20px 32px}
+.ms::-webkit-scrollbar{display:none}.mh{width:40px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 18px}
+.toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;pointer-events:none;animation:tin .2s ease;box-shadow:var(--sh3)}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fi{animation:up .2s ease}
+@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.card{background:#fff;border:.5px solid var(--b);border-radius:16px;box-shadow:var(--sh)}
+.lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.sep{height:.5px;background:var(--b);margin:10px 0}
+.p16{padding:16px}.px16{padding-left:16px;padding-right:16px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}
+.pts-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;background:var(--gld3);color:var(--ink2);font-size:11px;font-weight:600;border:.5px solid rgba(200,151,74,.4)}
+.star{font-size:26px;cursor:pointer;color:rgba(30,15,7,.12)}.star.lit{color:var(--gld)}
+.hot-b{background:linear-gradient(135deg,#FF4500,#FF8C00);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px}
+.rise-b{background:#EDE9FE;color:#5B21B6;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px}
+.live-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#fff;background:var(--rst2);padding:2px 8px;border-radius:999px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:pulse 1.5s infinite}
+.ftab-row{display:flex;border-bottom:.5px solid var(--b);background:#fff;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.ftab-row::-webkit-scrollbar{display:none}
+.ftab{padding:10px 14px;text-align:center;font-size:11px;font-weight:500;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0}
+.ftab.on{color:var(--ink);border-bottom-color:var(--gld)}
+.prog{height:4px;background:var(--b);border-radius:2px;overflow:hidden}
+.prog-f{height:100%;background:var(--sge);border-radius:2px}
+/* CD */
+.cd-bar{background:linear-gradient(135deg,#1A0A04,#2C1208);border:1px solid rgba(200,151,74,.3);border-radius:16px;padding:13px 15px;margin:12px 16px 0;cursor:pointer;position:relative;overflow:hidden}
+.cd-dot{width:6px;height:6px;border-radius:50%;background:var(--gld);animation:pulse 1.5s ease infinite;display:inline-block}
+.cd-wave{display:flex;align-items:flex-end;gap:2px;height:16px}
+.cd-wb{width:3px;border-radius:2px;background:var(--gld);animation:wave 1.2s ease infinite}
+.cd-wb:nth-child(2){animation-delay:.1s;height:60%}.cd-wb:nth-child(3){animation-delay:.2s;height:100%}.cd-wb:nth-child(4){animation-delay:.3s;height:70%}.cd-wb:nth-child(5){animation-delay:.4s;height:45%}
+@keyframes wave{0%,100%{transform:scaleY(.5)}50%{transform:scaleY(1)}}
+/* MATCH RING */
+.mr{border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.mr-in{border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink);font-size:10px;position:absolute}
+/* MAP */
+.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 6px 28px rgba(30,15,7,.2)!important;border:none!important;padding:0!important}
+.leaflet-popup-content{margin:0!important;font-family:'Inter',sans-serif}
+.leaflet-popup-tip-container{display:none!important}
+/* BARISTA PORTAL */
+.bp-tab{padding:8px 13px;border-radius:999px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0}
+.bp-tab.on{background:#fff;color:var(--ink)}.bp-tab.off{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6)}
+.stock-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo}=React;
+
+// ═══════════ ROASTERY & BEAN DATABASE (scraped + researched) ═══
+const ROASTERIES=[
+  // JHB
+  {id:'father',name:'Father Coffee',city:'Johannesburg',color:'#2A1810',emoji:'☕',website:'father.coffee',
+   desc:'JHB\'s most innovative specialty roaster. 46+ coffees annually, rare Geisha releases, experimental fermentation.',
+   tags:['Microlots','Experimental','Rare Release','Geisha specialist'],
+   locations:[{name:'Kramerville',addr:'142 Fox St, Kramerville',lat:-26.2041,lng:28.0473,hours:'Mon–Sat 7–17'},{name:'Rosebank',addr:'The Zone, Oxford Rd, Rosebank',lat:-26.1472,lng:28.0438,hours:'Mon–Sun 7–18'}],
+   beans:[
+    {id:'f1',name:'Antimaceration Geisha by El Paraíso',origin:'Colombia',process:'Vacuum Fermented',roast:'Light',score:91,price:'R529',flavors:['Guava','Pineapple','Passionfruit','Cola','Cacao'],acidity:8.5,body:8,sweetness:8,fruitiness:10,intensity:9,aroma:9,finish:8,methods:['V60','Chemex','Filter'],trend:'hot',week:58,purchases30d:142,trendPct:38},
+    {id:'f2',name:'Lalesa Black Honey, Yirgacheffe',origin:'Ethiopia',process:'Black Honey',roast:'Light',score:87.5,price:'R359',flavors:['Guava','Apricot','Toffee','Mango','Blackcurrant'],acidity:7,body:6,sweetness:9,fruitiness:9,intensity:7,aroma:8,finish:7.5,methods:['V60','AeroPress','Espresso'],trend:'rising',week:34,purchases30d:89,trendPct:22},
+    {id:'f3',name:'K Organics Anaerobic Natural, Huye',origin:'Rwanda',process:'Anaerobic Natural',roast:'Light',score:93,price:'R1379',flavors:['Blueberry jam','Hibiscus','Dark chocolate','Red wine'],acidity:8,body:7,sweetness:9.5,fruitiness:9.5,intensity:8.5,aroma:9,finish:9,methods:['V60','Cold brew'],trend:'rising',week:29,purchases30d:63,trendPct:46},
+    {id:'f4',name:'Pink Bourbon by Diego Bermudez',origin:'Colombia',process:'Washed',roast:'Light',score:89,price:'R489',flavors:['Rose','Raspberry','Lychee','Red apple'],acidity:8,body:4.5,sweetness:8.5,fruitiness:8.5,intensity:5,aroma:8.5,finish:7.5,methods:['V60','Filter'],trend:'steady',week:18,purchases30d:67,trendPct:2},
+    {id:'f5',name:'Chombi Natural Geisha',origin:'Panama',process:'Natural',roast:'Light',score:90,price:'R599',flavors:['Jasmine','White peach','Bergamot','Honey'],acidity:8,body:4.5,sweetness:8.5,fruitiness:9,intensity:5,aroma:9.5,finish:8,methods:['Filter','Chemex'],trend:'rising',week:18,purchases30d:38,trendPct:55},
+  ]},
+  {id:'beanthere',name:'Bean There Coffee Company',city:'Johannesburg',color:'#1E2A18',emoji:'🌍',website:'beanthere.co.za',
+   desc:'Pioneer of direct trade in South Africa since 2006. Exclusively African single origins — 100% direct trade certified.',
+   tags:['Direct trade','African only','Pioneer','Fair trade'],
+   locations:[{name:'Braamfontein',addr:'25 Paul Nel St, Braamfontein',lat:-26.1934,lng:28.0345,hours:'Mon–Sat 7–17'}],
+   beans:[
+    {id:'bt1',name:'Ethiopia Single Origin',origin:'Ethiopia',process:'Washed',roast:'Light-Medium',score:86,price:'R155',flavors:['Jasmine','Bergamot','Lemon','Peach'],acidity:8.5,body:3.5,sweetness:6.5,fruitiness:8.5,intensity:4.5,aroma:8.5,finish:7,methods:['V60','Batch brew'],trend:'hot',week:72,purchases30d:210,trendPct:15},
+    {id:'bt2',name:'Kenya Single Origin',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:87,price:'R155',flavors:['Blackcurrant','Brown sugar','Sparkling','Citrus'],acidity:9,body:5,sweetness:6.5,fruitiness:8.5,intensity:6,aroma:7.5,finish:7.5,methods:['V60','Espresso'],trend:'steady',week:61,purchases30d:187,trendPct:5},
+    {id:'bt3',name:'Rwanda Single Origin',origin:'Rwanda',process:'Washed',roast:'Light',score:86,price:'R150',flavors:['Peach','Rose','Orange zest','Caramel'],acidity:7.5,body:4.5,sweetness:8,fruitiness:7.5,intensity:4.5,aroma:8,finish:7,methods:['V60','AeroPress'],trend:'new',week:28,purchases30d:134,trendPct:0},
+    {id:'bt4',name:'Burundi Single Origin',origin:'Burundi',process:'Washed',roast:'Light-Medium',score:85,price:'R140',flavors:['Black plum','Cinnamon','Dark chocolate','Juicy'],acidity:7.5,body:5.5,sweetness:7.5,fruitiness:7,intensity:5.5,aroma:7.5,finish:7.5,methods:['Espresso','Milk drink'],trend:'steady',week:22,purchases30d:89,trendPct:4},
+    {id:'bt5',name:'D.R. Congo Single Origin',origin:'D.R. Congo',process:'Washed',roast:'Medium',score:84,price:'R145',flavors:['Dark fruit','Chocolate','Earthy','Full body'],acidity:5.5,body:8,sweetness:7,fruitiness:5.5,intensity:7.5,aroma:7,finish:7.5,methods:['French press','Espresso'],trend:'steady',week:15,purchases30d:67,trendPct:1},
+   ]},
+  {id:'seam',name:'Seam Coffee',city:'Johannesburg',color:'#282018',emoji:'🌱',website:'seam.co.za',
+   desc:'Founded 2017 by David Walstra. Fourways roastery connecting farmers directly to drinkers through ethical trade. Signature: Campbell Road blend.',
+   tags:['Direct trade','Sustainability','Fair trade','Co-working'],
+   locations:[{name:'Fourways',addr:'75 Century Blvd, Riversands, Diepsloot',lat:-26.0001,lng:28.0024,hours:'Mon–Fri 7–17, Sat 8–14'}],
+   beans:[
+    {id:'sm1',name:'Campbell Road House Blend',origin:'Ethiopia / Colombia',process:'Mixed',roast:'Medium',score:85,price:'R185',flavors:['Milk chocolate','Treacle sugar','Brown sugar','Smooth'],acidity:5.5,body:6.5,sweetness:8.5,fruitiness:5,intensity:6,aroma:7,finish:7,methods:['Espresso','Milk drink','Moka pot'],trend:'steady',week:34,purchases30d:145,trendPct:3},
+    {id:'sm2',name:'Ethiopia Yirgacheffe Single Origin',origin:'Ethiopia',process:'Washed',roast:'Light',score:87,price:'R210',flavors:['Jasmine','Lemon','Bergamot','Clean'],acidity:8.5,body:3.5,sweetness:7,fruitiness:9,intensity:4.5,aroma:9,finish:7.5,methods:['V60','Filter'],trend:'rising',week:28,purchases30d:89,trendPct:31},
+    {id:'sm3',name:'Colombia Huila Washed',origin:'Colombia',process:'Washed',roast:'Light-Medium',score:86,price:'R195',flavors:['Red apple','Caramel','Almond','Clean'],acidity:6.5,body:5.5,sweetness:7.5,fruitiness:6,intensity:5.5,aroma:7,finish:7,methods:['Espresso','AeroPress','V60'],trend:'steady',week:19,purchases30d:72,trendPct:2},
+    {id:'sm4',name:'Rwanda Nyamasheke Natural',origin:'Rwanda',process:'Natural',roast:'Light',score:88,price:'R220',flavors:['Strawberry','Hibiscus','Rose','Honey'],acidity:7,body:5.5,sweetness:9,fruitiness:8.5,intensity:5,aroma:8.5,finish:8,methods:['V60','Cold brew'],trend:'rising',week:22,purchases30d:61,trendPct:28},
+   ]},
+  {id:'motherland',name:'Motherland Coffee Company',city:'Johannesburg',color:'#1C0C14',emoji:'🌍',website:'motherlandcoffee.com',
+   desc:'Bold African-focused chain. Fairtrade Ethiopian Sidamo + Rwandan Kivu signature blend. Multiple JHB locations. Specialty grade African single origins.',
+   tags:['Fair trade','African focus','Chain','Multiple locations'],
+   locations:[{name:'Dunkeld',addr:'Dunkeld West Centre, Jan Smuts & Bompass',lat:-26.1378,lng:28.0234,hours:'Mon–Fri 6–18, Sat 7–14.30, Sun 7–14'},{name:'Rosebank',addr:'Rosebank area',lat:-26.1467,lng:28.0428,hours:'Mon–Sun 7–18'}],
+   beans:[
+    {id:'ml1',name:'Ubuntu Blend',origin:'Ethiopia / Rwanda',process:'Mixed',roast:'Medium',score:84,price:'R195',flavors:['Rich earth','Spice','Dark berry','Bold'],acidity:5,body:7.5,sweetness:7,fruitiness:6,intensity:7.5,aroma:7,finish:7,methods:['Espresso','Milk drink','Filter'],trend:'steady',week:67,purchases30d:278,trendPct:4},
+    {id:'ml2',name:'Signature Blend (Ethiopian Sidamo + Rwandan Kivu)',origin:'Ethiopia / Rwanda',process:'Washed',roast:'Medium',score:83,price:'R170',flavors:['Smooth','Nutty','Brown sugar','Mild berry'],acidity:5.5,body:7,sweetness:7.5,fruitiness:5.5,intensity:6,aroma:6.5,finish:6.5,methods:['Espresso','Milk drink','Plunger'],trend:'steady',week:89,purchases30d:367,trendPct:2},
+    {id:'ml3',name:'Tanzania Kilimanjaro Single Origin',origin:'Tanzania',process:'Washed',roast:'Light-Medium',score:85,price:'R185',flavors:['Black tea','Citrus peel','Brown sugar'],acidity:7,body:5,sweetness:7,fruitiness:6.5,intensity:5,aroma:7,finish:7,methods:['V60','Espresso'],trend:'rising',week:31,purchases30d:98,trendPct:18},
+   ]},
+  // CPT
+  {id:'rosetta',name:'Rosetta Roastery',city:'Cape Town',color:'#1A2A18',emoji:'🌿',website:'rosettaroastery.com',
+   desc:'Award-winning Cape Town roaster. "Classic" and "Progressive" tiers. Direct trade. Consistently exceptional Kenyan and Ethiopian selections.',
+   tags:['Award-winning','Classic & Progressive','Direct trade','CPT icon'],
+   locations:[{name:'De Waterkant',addr:'8 Jarvis St, De Waterkant',lat:-33.9166,lng:18.4182,hours:'Mon–Sun 7–18'}],
+   beans:[
+    {id:'r1',name:'Yirgacheffe Kochere',origin:'Ethiopia',process:'Washed',roast:'Light',score:92,price:'R260',flavors:['Bergamot','Lemon','White jasmine','Silky'],acidity:9,body:3,sweetness:7,fruitiness:9,intensity:3.5,aroma:9.5,finish:8,methods:['V60','Filter'],trend:'hot',week:52,purchases30d:145,trendPct:20},
+    {id:'r2',name:'Kenya Thiriku AA',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:91,price:'R275',flavors:['Blackcurrant','Peach','Brown sugar','Sparkling'],acidity:8.5,body:5.5,sweetness:7,fruitiness:8,intensity:5.5,aroma:8,finish:8,methods:['V60','Espresso'],trend:'rising',week:41,purchases30d:123,trendPct:24},
+    {id:'r3',name:'Guji Natural',origin:'Ethiopia',process:'Natural',roast:'Light',score:90,price:'R265',flavors:['Blueberry','Strawberry','Dark chocolate','Wine-like'],acidity:7,body:6,sweetness:9,fruitiness:9.5,intensity:5,aroma:8.5,finish:7.5,methods:['Espresso','Cold brew'],trend:'rising',week:34,purchases30d:98,trendPct:32},
+    {id:'r4',name:'Classic Espresso Blend',origin:'Brazil / Ethiopia',process:'Mixed',roast:'Medium',score:84,price:'R220',flavors:['Dark chocolate','Caramel','Mild berry'],acidity:5,body:7,sweetness:7.5,fruitiness:5,intensity:6.5,aroma:6.5,finish:7,methods:['Espresso','Milk drink'],trend:'steady',week:78,purchases30d:312,trendPct:1},
+   ]},
+  {id:'truth',name:'Truth. Coffee',city:'Cape Town',color:'#201820',emoji:'⚙️',website:'truth.coffee',
+   desc:'World\'s best café 2014. Steampunk aesthetic. Bold signature blends + exceptional single origins. Destination café on Buitenkant St.',
+   tags:['World-class','Steampunk','Destination','Award-winning'],
+   locations:[{name:'Buitenkant St',addr:'36 Buitenkant St, Cape Town CBD',lat:-33.9249,lng:18.4241,hours:'Mon–Sat 7–18'}],
+   beans:[
+    {id:'t1',name:'The Gospel — Ethiopia Gedeb',origin:'Ethiopia',process:'Washed',roast:'Light',score:92,price:'R255',flavors:['Jasmine','Bergamot','Lemon verbena','White peach'],acidity:8.5,body:3.5,sweetness:7.5,fruitiness:9,intensity:4,aroma:9.5,finish:8.5,methods:['V60','Chemex','Filter'],trend:'rising',week:41,purchases30d:98,trendPct:28},
+    {id:'t2',name:'The Sermon — Kenya Kiambu',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:90,price:'R270',flavors:['Blackcurrant','Tomato leaf','Citrus','Bold'],acidity:9,body:5.5,sweetness:6,fruitiness:8.5,intensity:6.5,aroma:8,finish:8,methods:['Espresso','V60'],trend:'steady',week:38,purchases30d:112,trendPct:3},
+    {id:'t3',name:'Espresso Blend (House)',origin:'Brazil / Kenya',process:'Mixed',roast:'Medium',score:83,price:'R230',flavors:['Dark chocolate','Caramel','Berry hint'],acidity:5.5,body:7,sweetness:7.5,fruitiness:5,intensity:7,aroma:7,finish:7.5,methods:['Espresso','Milk drink'],trend:'steady',week:92,purchases30d:389,trendPct:2},
+   ]},
+  {id:'origin',name:'Origin Coffee Roasting',city:'Cape Town',color:'#182028',emoji:'🔬',website:'originroasting.co.za',
+   desc:'Founded 2005 by Joel Singer. Godfather of South African specialty coffee. Widest single-origin selection in SA. V60, Chemex, siphon, AeroPress brew bar.',
+   tags:['Pioneer','Widest selection','Barista academy','De Waterkant'],
+   locations:[{name:'De Waterkant',addr:'28 Hudson St, De Waterkant',lat:-33.9162,lng:18.4188,hours:'Mon–Sun 7–17'}],
+   beans:[
+    {id:'o1',name:'Ethiopia Yirgacheffe Washed',origin:'Ethiopia',process:'Washed',roast:'Light',score:90,price:'R245',flavors:['Bergamot','Floral','Citrus','Clean'],acidity:8.5,body:3.5,sweetness:7,fruitiness:9,intensity:4,aroma:9,finish:8,methods:['V60','Siphon','Chemex'],trend:'hot',week:48,purchases30d:178,trendPct:22},
+    {id:'o2',name:'Kenya Nyeri AB',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:89,price:'R260',flavors:['Blackcurrant','Peach','Red grape','Wine-like'],acidity:8.5,body:5,sweetness:7,fruitiness:8.5,intensity:5.5,aroma:8,finish:8,methods:['Espresso','V60','AeroPress'],trend:'rising',week:38,purchases30d:134,trendPct:19},
+    {id:'o3',name:'Colombia Huila Natural',origin:'Colombia',process:'Natural',roast:'Medium',score:87,price:'R235',flavors:['Strawberry jam','Dark chocolate','Brown sugar'],acidity:6.5,body:6,sweetness:9,fruitiness:8,intensity:6,aroma:7.5,finish:7.5,methods:['Espresso','Milk drink','AeroPress'],trend:'rising',week:29,purchases30d:89,trendPct:35},
+    {id:'o4',name:'Seasonal Micro-lot (Rotating)',origin:'Various',process:'Varies',roast:'Light',score:91,price:'R295',flavors:['Seasonal','Limited','Complex'],acidity:8,body:4.5,sweetness:7.5,fruitiness:8.5,intensity:5,aroma:8.5,finish:8,methods:['V60','Chemex'],trend:'new',week:15,purchases30d:42,trendPct:0},
+   ]},
+  // Tel Aviv
+  {id:'cafelix',name:'Cafelix',city:'Tel Aviv',color:'#1A1828',emoji:'🕊️',website:'cafelix.co.il',
+   desc:'Third-wave pioneer in Israel. Direct-trade relationships with Ethiopian and South American farms. Specialty single origins and seasonal micro-lots.',
+   tags:['Third wave','Direct trade','Pioneer','Tel Aviv'],
+   locations:[{name:'Tel Aviv',addr:'HaArba\'a St, Tel Aviv',lat:32.0719,lng:34.7895,hours:'Sun–Fri 7–18'}],
+   beans:[
+    {id:'cx1',name:'Ethiopia Guji Natural',origin:'Ethiopia',process:'Natural',roast:'Light',score:89,price:'₪85',flavors:['Blueberry','Tropical fruit','Honey','Wine'],acidity:7.5,body:6,sweetness:9,fruitiness:9.5,intensity:5.5,aroma:8.5,finish:7.5,methods:['V60','Chemex','Cold brew'],trend:'hot',week:34,purchases30d:98,trendPct:25},
+    {id:'cx2',name:'Colombia Supremo Washed',origin:'Colombia',process:'Washed',roast:'Medium',score:86,price:'₪72',flavors:['Caramel','Almond','Brown sugar','Mild citrus'],acidity:6,body:6.5,sweetness:8,fruitiness:6,intensity:6,aroma:7,finish:7.5,methods:['Espresso','Milk drink'],trend:'steady',week:28,purchases30d:112,trendPct:3},
+   ]},
+  {id:'waycup',name:'WayCup Coffee',city:'Tel Aviv',color:'#201818',emoji:'☕',website:'waycupcoffee.com',
+   desc:'Neighborhood small-batch roastery. Focus on freshness — roasted to order. Light and medium roast specialists with African and South American origins.',
+   tags:['Small batch','Freshness-first','Neighborhood','Tel Aviv'],
+   locations:[{name:'Tel Aviv',addr:'Sheinkin St, Tel Aviv',lat:32.0629,lng:34.7724,hours:'Sun–Fri 7–17, Sat 9–16'}],
+   beans:[
+    {id:'wc1',name:'Ethiopia Sidama Washed',origin:'Ethiopia',process:'Washed',roast:'Light',score:87,price:'₪78',flavors:['Lemon','Jasmine','Stone fruit','Clean'],acidity:8.5,body:3.5,sweetness:7,fruitiness:8.5,intensity:4,aroma:8.5,finish:7.5,methods:['V60','AeroPress'],trend:'rising',week:22,purchases30d:67,trendPct:28},
+    {id:'wc2',name:'Brazil Serra Negra Natural',origin:'Brazil',process:'Natural',roast:'Medium',score:84,price:'₪65',flavors:['Peanut','Dark chocolate','Caramel','Full body'],acidity:4,body:8,sweetness:8.5,fruitiness:4.5,intensity:7,aroma:7,finish:7,methods:['Espresso','Milk drink','French press'],trend:'steady',week:31,purchases30d:124,trendPct:4},
+   ]},
+  {id:'youneedcoffee',name:'You Need Coffee',city:'Tel Aviv',color:'#1A1808',emoji:'🌟',website:'youneedcoffee.com',
+   desc:'Extensive online catalog of light to dark specialty roasts. Wide range from light Ethiopian filters to dark Italian-style blends. Ships across Israel.',
+   tags:['Online store','Wide range','Light to dark','Israel'],
+   locations:[{name:'Tel Aviv',addr:'Online + showroom, Tel Aviv',lat:32.0811,lng:34.7812,hours:'Sun–Thu 9–18'}],
+   beans:[
+    {id:'yn1',name:'Guatemala Antigua Washed',origin:'Guatemala',process:'Washed',roast:'Medium',score:85,price:'₪70',flavors:['Chocolate','Brown sugar','Walnut','Clean finish'],acidity:6,body:6.5,sweetness:8,fruitiness:5.5,intensity:6.5,aroma:7,finish:7.5,methods:['Espresso','AeroPress','Moka pot'],trend:'steady',week:18,purchases30d:89,trendPct:2},
+    {id:'yn2',name:'Kenya AA Washed',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:88,price:'₪82',flavors:['Blackcurrant','Citrus','Bright','Complex'],acidity:9,body:5,sweetness:6.5,fruitiness:8.5,intensity:5.5,aroma:8,finish:8,methods:['V60','Espresso'],trend:'rising',week:24,purchases30d:78,trendPct:20},
+   ]},
+];
+
+// Flatten all beans for search
+const ALL_BEANS=ROASTERIES.flatMap(r=>r.beans.map(b=>({...b,roasteryId:r.id,roasteryName:r.name,roasteryEmoji:r.emoji,roasteryColor:r.color})));
+
+// All café locations
+const ALL_CAFES=ROASTERIES.flatMap(r=>r.locations.map(l=>({...l,roasteryId:r.id,roasteryName:r.name,emoji:r.emoji,color:r.color,hotBeans:r.beans.filter(b=>b.trend==='hot').map(b=>b.name)})));
+
+const BARISTAS=[
+  {id:'ba1',name:'James Osei',cafe:'Father Kramerville',cafeId:'father',emoji:'⚡',specialties:['V60','Geisha specialist','Competition prep'],yrs:6,kudos:341,rating:4.9,bio:'WBC 2023 competitor. Specialises in rare Geisha extractions.',recent:['Perfect extraction on the Antimaceration Geisha','Explained vacuum fermentation in plain language']},
+  {id:'ba2',name:'Nia Dlamini',cafe:'Bean There Braamfontein',cafeId:'beanthere',emoji:'🌿',specialties:['Filter','Washed origins','Latte art'],yrs:4,kudos:218,rating:4.8,bio:'African origins expert. Teaches community cupping workshops.',recent:['Brilliant on the Ethiopia V60','Explained exactly why the Kenya was brighter than usual']},
+  {id:'ba3',name:'Marco Visagie',cafe:'Father Rosebank',cafeId:'father',emoji:'☕',specialties:['Espresso','Natural process','Milk drinks'],yrs:3,kudos:156,rating:4.7,bio:'Natural process devotee. Best milk-steaming in Rosebank.',recent:['Nailed the Firefly as espresso — strawberry forward']},
+  {id:'ba4',name:'Thandi Nkosi',cafe:'Tribe Hyde Park',cafeId:'tribe',emoji:'🏔️',specialties:['African origins','Education','Cupping'],yrs:5,kudos:289,rating:4.8,bio:'Passionate about teaching coffee from farm to cup.',recent:['Ran an incredible cupping session','Taught me about Rwandan processing']},
+  {id:'ba5',name:'David Levy',cafe:'Origin De Waterkant',cafeId:'origin',emoji:'🔬',specialties:['Siphon','Chemex','Brew bar'],yrs:7,kudos:412,rating:4.9,bio:'Origin\'s lead brew bar barista. SA National Barista Champion finalist.',recent:['The siphon on Yirgacheffe was extraordinary','Most knowledgeable barista I\'ve met']},
+];
+
+const USER_MOCK={name:'Alex',city:'Johannesburg',tier:'Flavour Explorer',logs:23,cafes:8,avgRating:4.1,points:340,
+  profile:{acidity:7.8,body:4.2,sweetness:6.5,fruitiness:8.5,intensity:4.8,aroma:7.5,finish:7},
+  preferences:{likes:['Bright acidity','Fruity','African origins','Light roasts'],avoids:['Heavy bitterness','Dark roasts']},
+  currentDrinking:null,
+};
+
+// ═════════════ UTILS ══════════════════════════════════════════
+function Toast({msg,onDone}){useEffect(()=>{const t=setTimeout(onDone,2600);return()=>clearTimeout(t)},[]);return <div className="toast">{msg}</div>}
+
+function MatchRing({pct,size=48}){const deg=(pct/100)*360;return(
+  <div className="mr" style={{width:size,height:size,background:`conic-gradient(var(--sge) ${deg}deg,rgba(30,15,7,.1) ${deg}deg)`}}>
+    <div className="mr-in" style={{width:size-14,height:size-14,fontSize:10}}>{pct}%</div>
+  </div>
+);}
+
+function Stars({val,onChange,size=28}){const[h,sh]=useState(0);return(
+  <div style={{display:'flex',gap:4}}>
+    {[1,2,3,4,5].map(n=><span key={n} className={`star${n<=(h||val)?' lit':''}`} style={{fontSize:size}} onClick={()=>onChange&&onChange(n)} onMouseEnter={()=>onChange&&sh(n)} onMouseLeave={()=>sh(0)}>★</span>)}
+  </div>
+);}
+
+function matchScore(userProfile,bean){
+  const weights={acidity:.25,fruitiness:.2,sweetness:.2,body:.15,intensity:.1,aroma:.05,finish:.05};
+  let total=0,wt=0;
+  Object.entries(weights).forEach(([k,w])=>{
+    const u=userProfile[k],b=bean[k];
+    if(u!=null&&b!=null){total+=w*(1-Math.abs(u-b)/10);wt+=w;}
+  });
+  return wt>0?Math.round((total/wt)*100):70;
+}
+
+// ═════════════ LIVE MAP ══════════════════════════════════════════
+function LiveMap({height=260}){
+  const mapRef=useRef(null);
+  const mapInst=useRef(null);
+  const nomMarkers=useRef([]);
+  const[status,setStatus]=useState('Tap 📍 to find cafés near you via GPS');
+  const[locating,setLocating]=useState(false);
+  const[located,setLocated]=useState(false);
+
+  useEffect(()=>{
+    if(mapInst.current||!window.L||!mapRef.current)return;
+    const L=window.L;
+    const map=L.map(mapRef.current,{zoomControl:false,scrollWheelZoom:true,tap:false}).setView([-26.2041,28.0473],12);
+    mapInst.current=map;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+    L.control.zoom({position:'bottomright'}).addTo(map);
+
+    ALL_CAFES.forEach(cafe=>{
+      const hasHot=cafe.hotBeans.length>0;
+      const icon=L.divIcon({
+        html:`<div style="background:${cafe.color};border-radius:12px;padding:5px 9px;color:#fff;font-size:10px;font-weight:600;font-family:Inter,sans-serif;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;gap:4px">${cafe.emoji} ${cafe.name.split(',')[0]}${hasHot?'<span style="background:linear-gradient(135deg,#FF4500,#FF8C00);border-radius:999px;padding:1px 5px;font-size:8px">🔥</span>':''}</div>`,
+        className:'',iconAnchor:[0,36]
+      });
+      const marker=L.marker([cafe.lat,cafe.lng],{icon}).addTo(map);
+      const beanList=cafe.hotBeans.slice(0,2).map(b=>`<div style="font-size:11px;color:#333;padding:2px 0;border-bottom:1px solid #f5f5f5">${b}</div>`).join('');
+      marker.bindPopup(`
+        <div style="font-family:Inter,sans-serif;min-width:210px;padding:0">
+          <div style="background:${cafe.color};padding:10px 13px;border-radius:14px 14px 0 0">
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px">${cafe.emoji} ${cafe.roasteryName}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.55)">${cafe.name} · ${cafe.hours}</div>
+          </div>
+          <div style="padding:10px 13px">
+            ${cafe.hotBeans.length?`<div style="font-size:9px;font-weight:700;color:#7A5010;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">🔥 Hot right now</div>${beanList}`:''}
+            <div style="display:flex;gap:6px;margin-top:9px">
+              <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(cafe.addr)}','_blank')" style="flex:2;padding:8px;border-radius:8px;background:#1E0F07;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">📍 Directions</button>
+            </div>
+          </div>
+        </div>`,{maxWidth:280,closeButton:false,offset:[0,-36]});
+    });
+    setTimeout(()=>map.invalidateSize(),100);
+  },[]);
+
+  const handleLocate=()=>{
+    if(!navigator.geolocation){setStatus('Geolocation not available');return;}
+    setLocating(true);setStatus('Finding your location…');
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const{latitude:lat,longitude:lng}=pos.coords;
+      const L=window.L;const map=mapInst.current;
+      if(!map||!L)return;
+      setLocating(false);setLocated(true);
+      const uIcon=L.divIcon({html:`<div style="width:18px;height:18px;border-radius:50%;background:#4285F4;border:3px solid #fff;box-shadow:0 2px 8px rgba(66,133,244,.6)"></div>`,className:'',iconAnchor:[9,9]});
+      L.marker([lat,lng],{icon:uIcon,zIndexOffset:1000}).addTo(map).bindPopup('<div style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:6px 10px">📍 You are here</div>').openPopup();
+      map.setView([lat,lng],14,{animate:true});
+      setStatus('📍 Located · Fetching real coffee shops from OpenStreetMap…');
+      const url=`https://nominatim.openstreetmap.org/search?q=coffee+shop&format=json&limit=25&bounded=1&viewbox=${lng-.06},${lat+.06},${lng+.06},${lat-.06}&addressdetails=1`;
+      fetch(url,{headers:{'User-Agent':'Brewly-App/1.0'}})
+        .then(r=>r.json())
+        .then(data=>{
+          nomMarkers.current.forEach(m=>map.removeLayer(m));nomMarkers.current=[];
+          const valid=data.filter(p=>p.lat&&p.lon);
+          valid.forEach(place=>{
+            const nm=L.divIcon({html:`<div style="background:#fff;border:2px solid #C8974A;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:600;font-family:Inter,sans-serif;color:#1E0F07;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap">☕ ${place.display_name.split(',')[0]}</div>`,className:'',iconAnchor:[0,24]});
+            const m=L.marker([+place.lat,+place.lon],{icon:nm}).addTo(map);
+            m.bindPopup(`<div style="font-family:Inter,sans-serif;padding:10px 13px;min-width:190px">
+              <div style="font-size:12px;font-weight:600;color:#1E0F07;margin-bottom:4px">☕ ${place.display_name.split(',')[0]}</div>
+              <div style="font-size:10px;color:#6B4030;margin-bottom:8px">${place.display_name.split(',').slice(1,3).join(',').trim()}</div>
+              <span style="background:#E2F0DF;color:#6D8C6A;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px">OSM verified</span>
+              <div style="margin-top:8px"><button onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(place.display_name)}','_blank')" style="width:100%;padding:8px;border-radius:8px;background:#1E0F07;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">📍 Directions</button></div>
+            </div>`,{maxWidth:260,closeButton:false});
+            nomMarkers.current.push(m);
+          });
+          setStatus(`📍 ${valid.length} real coffee shops + ${ALL_CAFES.length} Brewly cafés shown`);
+        })
+        .catch(()=>setStatus(`📍 Located · ${ALL_CAFES.length} Brewly partner cafés shown`));
+    },err=>{setLocating(false);const m={1:'Location denied',2:'Could not get location',3:'Location timed out'};setStatus(m[err.code]||'Location error');},{timeout:12000,enableHighAccuracy:true});
+  };
+
+  return(
+    <div style={{position:'relative'}}>
+      <div ref={mapRef} style={{height,width:'100%',borderRadius:14,overflow:'hidden'}}/>
+      <button onClick={handleLocate} disabled={locating} style={{position:'absolute',top:10,right:10,zIndex:999,background:located?'var(--sge)':locating?'rgba(250,248,243,.9)':'rgba(250,248,243,.97)',border:`.5px solid ${located?'var(--sge)':locating?'var(--gld)':'var(--b2)'}`,borderRadius:10,padding:'8px 13px',fontSize:12,fontWeight:600,fontFamily:'Inter,sans-serif',cursor:'pointer',color:located?'#fff':'var(--ink)',boxShadow:'var(--sh2)'}}>
+        {locating?<span className="spin">⟳</span>:located?'✓ Located':'📍 Locate me'}
+      </button>
+      <div style={{position:'absolute',bottom:8,left:8,right:54,zIndex:999,background:'rgba(250,248,243,.94)',border:'.5px solid var(--b2)',borderRadius:8,padding:'5px 9px',fontSize:10,color:'var(--ink3)',lineHeight:1.4}}>
+        {status}
+      </div>
+    </div>
+  );
+}
+
+// ═════════════ HOME ══════════════════════════════════════════════
+function Home({user,setUser,following,onLog,onGoTo,toast}){
+  const[showCD,sShowCD]=useState(false);
+  const hotBeans=ALL_BEANS.filter(b=>b.trend==='hot').slice(0,5);
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+
+  return(<div className="fi">
+    <div style={{background:'var(--ink)',padding:'22px 20px 24px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div className="serif" style={{fontSize:24,letterSpacing:'-.3px'}}>Brew<em style={{fontStyle:'italic',color:'var(--gld2)'}}>ly</em></div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <span className="pts-badge">✦ {user.points} pts</span>
+          <div onClick={()=>onGoTo('discover')} style={{cursor:'pointer',display:'flex'}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+      </div>
+      <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:3}}>{greet}, {user.name} ☀️</div>
+
+      {/* Today's pick */}
+      <div style={{background:'rgba(255,255,255,.07)',border:'.5px solid rgba(255,255,255,.1)',borderRadius:14,padding:14,marginTop:14,position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:-25,right:-25,width:100,height:100,borderRadius:'50%',background:'rgba(200,151,74,.07)'}}/>
+        <div style={{fontSize:9,letterSpacing:1.5,textTransform:'uppercase',color:'var(--gld2)',marginBottom:6}}>Today's Pick · {matchScore(user.profile,ALL_BEANS[0])}% match</div>
+        <div className="serif" style={{fontSize:18,color:'#fff',marginBottom:2}}>{ALL_BEANS[0].name}</div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,.5)',marginBottom:9}}>{ALL_BEANS[0].roasteryName} · Score {ALL_BEANS[0].score}/100</div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          <span className="hot-b">🔥 Hot · +{ALL_BEANS[0].trendPct}%</span>
+          {ALL_BEANS[0].flavors.slice(0,2).map(f=><span key={f} style={{background:'rgba(109,140,106,.3)',color:'var(--sge2)',fontSize:10,padding:'3px 9px',borderRadius:999}}>{f}</span>)}
+        </div>
+        <div style={{fontSize:10,color:'rgba(255,255,255,.3)',marginTop:6}}>📊 {ALL_BEANS[0].purchases30d} orders last 30 days</div>
+      </div>
+    </div>
+
+    {/* Currently Drinking */}
+    <div className="cd-bar" onClick={()=>sShowCD(true)}>
+      {user.currentDrinking
+        ?<div style={{display:'flex',alignItems:'center',gap:12}}>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                <span className="cd-dot"/><span style={{fontSize:9,fontWeight:700,color:'var(--gld2)',letterSpacing:.8,textTransform:'uppercase'}}>Currently drinking</span>
+              </div>
+              <div className="serif" style={{fontSize:16,color:'#fff',marginBottom:2}}>{user.currentDrinking.bean}</div>
+              <div style={{fontSize:11,color:'rgba(255,255,255,.45)'}}>{user.currentDrinking.cafe} · {user.currentDrinking.method}</div>
+            </div>
+            <div style={{display:'flex',gap:10,alignItems:'center'}}>
+              <div className="cd-wave">{[40,60,100,70,45].map((h2,i)=><div key={i} className="cd-wb" style={{height:`${h2}%`}}/>)}</div>
+              <button onClick={e=>{e.stopPropagation();setUser(u=>({...u,currentDrinking:null}));}} style={{background:'rgba(255,255,255,.08)',border:'.5px solid rgba(255,255,255,.15)',borderRadius:'50%',width:22,height:22,color:'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:'inherit',fontSize:11,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+            </div>
+          </div>
+        :<div style={{display:'flex',alignItems:'center',gap:12}}>
+            <div style={{width:34,height:34,borderRadius:'50%',background:'rgba(200,151,74,.15)',border:'1px dashed rgba(200,151,74,.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>☕</div>
+            <div><div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:2}}>What are you drinking right now?</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,.6)',fontWeight:500}}>Set your Currently Drinking →</div></div>
+          </div>
+      }
+    </div>
+
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,padding:'12px 16px 0'}}>
+      {[[user.logs,'logged'],[user.cafes,'cafés'],[user.points,'pts']].map(([n,l])=>(
+        <div key={l} style={{background:'#fff',borderRadius:12,padding:'11px',textAlign:'center',border:'.5px solid var(--b)'}}>
+          <span className="serif" style={{fontSize:22,fontWeight:500,color:'var(--ink)',display:'block'}}>{n}</span>
+          <span style={{fontSize:9,color:'var(--ink3)'}}>{l}</span>
+        </div>
+      ))}
+    </div>
+    <div style={{padding:'12px 16px 0'}}><button className="btn btn-dk" onClick={onLog}>+ Log a Coffee</button></div>
+
+    {/* Trending */}
+    <div style={{padding:'14px 16px 6px'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+        <div className="serif" style={{fontSize:18,color:'var(--ink)'}}>🔥 Trending now</div>
+        <button onClick={()=>onGoTo('discover')} style={{fontSize:12,color:'var(--sge)',fontWeight:600,background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>See all →</button>
+      </div>
+      <div style={{display:'flex',gap:9,overflowX:'auto',scrollbarWidth:'none',paddingBottom:4}}>
+        {hotBeans.map(b=><div key={b.id} style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'11px 13px',minWidth:158,flexShrink:0,boxShadow:'var(--sh)'}}>
+          <div style={{marginBottom:5}}><span className="hot-b">🔥 Hot · +{b.trendPct}%</span></div>
+          <div className="serif" style={{fontSize:14,color:'var(--ink)',lineHeight:1.2,marginBottom:2}}>{b.name}</div>
+          <div style={{fontSize:10,color:'var(--ink3)',marginBottom:5}}>{b.roasteryName}</div>
+          <div style={{fontSize:11,color:'var(--sge)',fontWeight:600}}>{b.purchases30d} orders / 30d</div>
+        </div>)}
+      </div>
+    </div>
+    <div style={{height:20}}/>
+
+    {showCD&&<SetCDModal user={user} setUser={setUser} onClose={()=>sShowCD(false)} toast={toast}/>}
+  </div>);
+}
+
+function SetCDModal({user,setUser,onClose,toast}){
+  const[bean,sBean]=useState('');const[cafe,sCafe]=useState('');const[method,sMethod]=useState('');
+  return(<div className="mb" onClick={onClose}>
+    <div className="ms" onClick={e=>e.stopPropagation()}>
+      <div className="mh"/>
+      <div className="serif" style={{fontSize:22,color:'var(--ink)',marginBottom:4}}>Currently Drinking</div>
+      <div style={{fontSize:13,color:'var(--ink3)',marginBottom:18,lineHeight:1.6}}>Share what you're drinking right now — your followers see it live on your profile.</div>
+      <div style={{marginBottom:14}}>
+        <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Bean</label>
+        <div style={{display:'flex',gap:8,overflowX:'auto',scrollbarWidth:'none',marginBottom:8,paddingBottom:2}}>
+          {ALL_BEANS.slice(0,6).map(b=><div key={b.id} onMouseDown={()=>sBean(b.name)} style={{background:'#fff',border:`.5px solid ${bean===b.name?'var(--sge)':'var(--b)'}`,borderRadius:10,padding:'9px 12px',minWidth:145,flexShrink:0,cursor:'pointer'}}>
+            <div style={{fontSize:10,color:'var(--ink3)',marginBottom:2}}>{b.roasteryName}</div>
+            <div style={{fontSize:11,fontWeight:500,color:'var(--ink)',lineHeight:1.2}}>{b.name}</div>
+          </div>)}
+        </div>
+        <input className="inp" placeholder="Or type any coffee name…" value={bean} onChange={e=>sBean(e.target.value)} style={{fontSize:13}}/>
+      </div>
+      <div style={{marginBottom:14}}>
+        <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Coffee shop</label>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:7}}>
+          {ROASTERIES.slice(0,4).flatMap(r=>r.locations.slice(0,1)).map(l=><button key={l.name} onClick={()=>sCafe(l.name)} style={{padding:'7px 11px',borderRadius:999,border:`.5px solid ${cafe===l.name?'var(--ink)':'var(--b2)'}`,background:cafe===l.name?'var(--ink)':'var(--cr2)',color:cafe===l.name?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{l.name}</button>)}
+        </div>
+      </div>
+      <div style={{marginBottom:20}}>
+        <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Brew method</label>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
+          {['Espresso','V60','AeroPress','Filter','Cold brew','Milk drink','Chemex','Siphon'].map(m=><button key={m} onClick={()=>sMethod(m)} style={{padding:'9px 4px',borderRadius:9,border:`.5px solid ${method===m?'var(--ink)':'var(--b2)'}`,background:method===m?'var(--ink)':'var(--cr2)',color:method===m?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:500,cursor:'pointer'}}>{m}</button>)}
+        </div>
+      </div>
+      <button className="btn btn-dk" onClick={()=>{if(!bean)return;setUser(u=>({...u,currentDrinking:{bean,cafe,method,since:'Just now'}}));toast('Now sharing: Currently Drinking ☕');onClose();}}>☕ Start drinking</button>
+    </div>
+  </div>);
+}
+
+// ═════════════ DISCOVER ══════════════════════════════════════════
+function Discover({user,toast}){
+  const[tab,sTab]=useState('map');
+  const[search,ss]=useState('');
+  const[city,sCity]=useState('All');
+  const[trend,sTrend]=useState('All');
+  const CITIES=['All','Johannesburg','Cape Town','Tel Aviv'];
+  const TRENDS=['All','🔥 Hot','📈 Rising','✨ New'];
+
+  const filtered=ALL_BEANS.filter(b=>{
+    const q=search.toLowerCase();
+    const matchQ=!q||b.name.toLowerCase().includes(q)||b.roasteryName.toLowerCase().includes(q)||b.origin.toLowerCase().includes(q)||b.flavors.some(f=>f.toLowerCase().includes(q));
+    const r=ROASTERIES.find(x=>x.id===b.roasteryId);
+    const matchCity=city==='All'||(r&&r.city===city);
+    const matchTrend=trend==='All'||(trend.includes('Hot')&&b.trend==='hot')||(trend.includes('Rising')&&b.trend==='rising')||(trend.includes('New')&&b.trend==='new');
+    return matchQ&&matchCity&&matchTrend;
+  });
+
+  return(<div className="fi">
+    <div style={{padding:'20px 16px 10px'}}>
+      <div className="serif" style={{fontSize:24,color:'var(--ink)',marginBottom:12}}>Discover</div>
+      <input className="inp" placeholder="Search beans, roasteries, origins, flavours…" value={search} onChange={e=>ss(e.target.value)} style={{marginBottom:0}}/>
+    </div>
+    <div className="ftab-row">
+      {[['map','🗺 Live Map'],['beans','Beans'],['trending','🔥 Trending'],['roasteries','Roasteries']].map(([id,lb])=><div key={id} className={`ftab${tab===id?' on':''}`} onClick={()=>sTab(id)}>{lb}</div>)}
+    </div>
+
+    {tab==='map'&&<div style={{padding:'12px 16px'}}>
+      <LiveMap height={280}/>
+      <div style={{background:'var(--cr2)',borderRadius:'0 0 12px 12px',padding:'7px 12px',fontSize:10,color:'var(--ink3)',display:'flex',justifyContent:'space-between',border:'.5px solid var(--b)',borderTop:'none',marginTop:-3}}>
+        <span>Branded café pins + real OSM coffee shops via Nominatim</span>
+        <span style={{color:'var(--sge)',fontWeight:500}}>Leaflet + OSM · Free</span>
+      </div>
+      <div className="lbl mt12 mb8">🔥 Hot at these cafés right now</div>
+      {ALL_BEANS.filter(b=>b.trend==='hot').slice(0,3).map(b=>(
+        <div key={b.id} style={{background:'#fff',borderRadius:12,border:'.5px solid var(--b)',padding:'12px 14px',marginBottom:8,display:'flex',alignItems:'center',gap:12}}>
+          <div style={{flex:1}}>
+            <div className="serif" style={{fontSize:14,color:'var(--ink)',marginBottom:2}}>{b.name}</div>
+            <div style={{fontSize:11,color:'var(--ink3)',marginBottom:4}}>{b.roasteryName} · {b.purchases30d} orders/30d</div>
+            <div style={{display:'flex',gap:5}}>
+              <span className="hot-b">🔥 Hot · +{b.trendPct}%</span>
+              {b.methods.slice(0,1).map(m=><span key={m} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:0}}>{m}</span>)}
+            </div>
+          </div>
+          <div className="serif" style={{fontSize:22,color:'var(--sge)',textAlign:'right'}}>{b.score}<div style={{fontSize:9,color:'var(--ink3)'}}>score</div></div>
+        </div>
+      ))}
+      <div style={{height:16}}/>
+    </div>}
+
+    {tab==='beans'&&<div style={{padding:'0 16px'}}>
+      {/* Filters */}
+      <div style={{display:'flex',gap:6,overflowX:'auto',scrollbarWidth:'none',padding:'10px 0',marginBottom:0}}>
+        {CITIES.map(c=><button key={c} onClick={()=>sCity(c)} style={{padding:'6px 12px',borderRadius:999,border:`.5px solid ${city===c?'var(--ink)':'var(--b2)'}`,background:city===c?'var(--ink)':'#fff',color:city===c?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>{c}</button>)}
+        <div style={{width:1,background:'var(--b)',margin:'0 4px',flexShrink:0}}/>
+        {TRENDS.map(t=><button key={t} onClick={()=>sTrend(t)} style={{padding:'6px 12px',borderRadius:999,border:`.5px solid ${trend===t?'var(--ink)':'var(--b2)'}`,background:trend===t?'var(--ink)':'#fff',color:trend===t?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>{t}</button>)}
+      </div>
+      <div className="lbl mb8">{filtered.length} beans · Matched to your taste profile</div>
+      {filtered.map(b=>{const score=matchScore(user.profile,b);return(
+        <div key={b.id} style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'12px 14px',marginBottom:9,boxShadow:'var(--sh)'}}>
+          <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:8}}>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3,flexWrap:'wrap'}}>
+                <div className="serif" style={{fontSize:14,color:'var(--ink)',lineHeight:1.2}}>{b.name}</div>
+                {b.trend==='hot'&&<span className="hot-b">🔥 Hot</span>}
+                {b.trend==='rising'&&<span className="rise-b">📈 Rising</span>}
+                {b.trend==='new'&&<span style={{background:'var(--sge3)',color:'var(--sge)',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999}}>✨ New</span>}
+              </div>
+              <div style={{fontSize:11,color:'var(--ink3)',marginBottom:5}}>{b.roasteryName} · {b.origin} · {b.process} · {b.price}</div>
+              <div>{b.flavors.slice(0,3).map(f=><span key={f} className="chip gld" style={{fontSize:10,padding:'2px 7px',margin:'2px 3px'}}>{f}</span>)}</div>
+            </div>
+            <MatchRing pct={score} size={46}/>
+          </div>
+          <div style={{background:'var(--cr2)',borderRadius:8,padding:'7px 10px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--ink3)',marginBottom:4}}>
+              <span>📊 {b.purchases30d} orders / 30 days</span>
+              <span style={{color:'var(--gld)',fontWeight:600}}>+{b.week} this week</span>
+            </div>
+            <div style={{display:'flex',gap:1.5,alignItems:'flex-end',height:20}}>
+              {[35,42,38,55,48,62,58,70,75,80,88,b.week].map((v,i)=>(
+                <div key={i} style={{flex:1,background:i===11?'var(--sge)':'rgba(109,140,106,.2)',borderRadius:2,height:`${Math.round((v/b.week)*100)}%`,minHeight:2}}/>
+              ))}
+            </div>
+          </div>
+        </div>
+      );})}
+      <div style={{height:20}}/>
+    </div>}
+
+    {tab==='trending'&&<div style={{padding:'14px 16px'}}>
+      <div className="lbl mb8">🔥 Hot right now</div>
+      {ALL_BEANS.filter(b=>b.trend==='hot').sort((a,b2)=>b2.week-a.week).map((b,i)=>(
+        <div key={b.id} style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'12px 14px',marginBottom:9}}>
+          <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
+            <span className="serif" style={{fontSize:18,color:'var(--gld)',fontWeight:600,flexShrink:0}}>#{i+1}</span>
+            <div style={{flex:1}}>
+              <div className="serif" style={{fontSize:14,color:'var(--ink)',marginBottom:2}}>{b.name}</div>
+              <div style={{fontSize:11,color:'var(--ink3)',marginBottom:6}}>{b.roasteryName} · {b.origin}</div>
+              <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:7}}>
+                <span className="hot-b">🔥 Hot · +{b.trendPct}%</span>
+                <span style={{fontSize:11,color:'var(--sge)',fontWeight:500}}>{b.purchases30d} orders/30d</span>
+              </div>
+              <div>{b.flavors.slice(0,3).map(f=><span key={f} className="chip gld" style={{fontSize:10,padding:'2px 7px',margin:'2px 3px'}}>{f}</span>)}</div>
+            </div>
+            <div className="serif" style={{fontSize:22,color:'var(--sge)',textAlign:'right',flexShrink:0}}>{b.score}</div>
+          </div>
+        </div>
+      ))}
+      <div className="lbl mb8 mt8">📈 Becoming popular</div>
+      {ALL_BEANS.filter(b=>b.trend==='rising').sort((a,b2)=>b2.trendPct-a.trendPct).map(b=>(
+        <div key={b.id} style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'12px 14px',marginBottom:9}}>
+          <div className="serif" style={{fontSize:14,color:'var(--ink)',marginBottom:2}}>{b.name}</div>
+          <div style={{fontSize:11,color:'var(--ink3)',marginBottom:5}}>{b.roasteryName} · +{b.trendPct}% this week</div>
+          <div>{b.flavors.slice(0,3).map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:'2px 3px'}}>{f}</span>)}</div>
+        </div>
+      ))}
+      <div style={{height:20}}/>
+    </div>}
+
+    {tab==='roasteries'&&<div style={{padding:'0 0 20px'}}>
+      <div style={{padding:'10px 16px'}}>
+        <div style={{display:'flex',gap:6,overflowX:'auto',scrollbarWidth:'none',paddingBottom:2}}>
+          {CITIES.map(c=><button key={c} onClick={()=>sCity(c)} style={{padding:'7px 12px',borderRadius:999,border:`.5px solid ${city===c?'var(--ink)':'var(--b2)'}`,background:city===c?'var(--ink)':'#fff',color:city===c?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>{c}</button>)}
+        </div>
+      </div>
+      {ROASTERIES.filter(r=>city==='All'||r.city===city).map(r=>(
+        <div key={r.id} style={{margin:'0 16px 12px',background:'#fff',borderRadius:14,border:'.5px solid var(--b)',overflow:'hidden',boxShadow:'var(--sh)'}}>
+          <div style={{background:r.color,padding:'14px 16px',display:'flex',gap:12,alignItems:'flex-start'}}>
+            <div style={{width:44,height:44,borderRadius:11,background:'rgba(255,255,255,.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{r.emoji}</div>
+            <div style={{flex:1}}>
+              <div className="serif" style={{fontSize:17,color:'#fff',marginBottom:2}}>{r.name}</div>
+              <div style={{fontSize:11,color:'rgba(255,255,255,.55)',marginBottom:5}}>{r.city} · {r.beans.length} beans on menu</div>
+              <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>{r.tags.slice(0,3).map(t=><span key={t} style={{background:'rgba(255,255,255,.12)',color:'rgba(255,255,255,.75)',fontSize:10,padding:'3px 8px',borderRadius:999}}>{t}</span>)}</div>
+            </div>
+          </div>
+          <div style={{padding:'10px 14px 14px'}}>
+            <div style={{fontSize:12,color:'var(--ink3)',lineHeight:1.5,marginBottom:10}}>{r.desc}</div>
+            <div style={{display:'flex',gap:6,overflowX:'auto',scrollbarWidth:'none'}}>
+              {r.beans.map(b=><span key={b.id} className={`chip ${b.trend==='hot'?'rst':b.trend==='rising'?'gld':'sge'}`} style={{fontSize:10,padding:'3px 9px',margin:0,flexShrink:0}}>
+                {b.trend==='hot'?'🔥 ':b.trend==='rising'?'📈 ':''}{b.name}
+              </span>)}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>}
+  </div>);
+}
+
+// ═════════════ PROFILE ══════════════════════════════════════════
+function Profile({user,setUser,logs,following,onGoTo,toast}){
+  const[showQR,sqr]=useState(false);
+  const[showCD,sCD]=useState(false);
+  const TIERS=['Coffee Curious','Flavour Explorer','Brew Guide','Palate Pro','Craft Authority'];
+  const TIER_PTS=[0,100,500,2000,5000];
+  const ti=TIERS.indexOf(user.tier);
+  const pct=Math.min(100,Math.round((user.points/(TIER_PTS[ti+1]||5000))*100));
+
+  return(<div className="fi">
+    <div style={{background:'var(--ink)',padding:'24px 20px 30px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:14}}>
+        <div style={{width:52,height:52,borderRadius:'50%',background:'rgba(200,151,74,.15)',border:'2px solid rgba(200,151,74,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>☕</div>
+        <button onClick={()=>onGoTo('barista')} style={{background:'rgba(255,255,255,.08)',border:'.5px solid rgba(255,255,255,.15)',borderRadius:9,padding:'8px 13px',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:600,cursor:'pointer'}}>Barista Portal →</button>
+      </div>
+      <div className="serif" style={{fontSize:22,color:'#fff',marginBottom:4}}>{user.name}'s Profile</div>
+      <div style={{display:'inline-flex',alignItems:'center',gap:5,background:'rgba(109,140,106,.2)',border:'.5px solid var(--sge2)',color:'var(--sge2)',fontSize:10,letterSpacing:.8,textTransform:'uppercase',padding:'4px 11px',borderRadius:999,marginBottom:12,fontWeight:600}}>✦ {user.tier}</div>
+      <div style={{display:'flex',marginBottom:14}}>
+        {[[user.logs,'logs'],[following.length,'following'],[user.points,'pts']].map(([n,l])=>(
+          <div key={l} style={{flex:1,textAlign:'center',borderRight:'.5px solid rgba(255,255,255,.1)',padding:'5px 4px'}}>
+            <div className="serif" style={{fontSize:20,color:'#fff'}}>{n}</div>
+            <div style={{fontSize:9,color:'rgba(255,255,255,.4)'}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:10,display:'flex',justifyContent:'space-between',color:'rgba(255,255,255,.3)',marginBottom:5}}><span>{user.tier}</span><span>{(TIER_PTS[ti+1]||5000)-user.points} pts to {TIERS[ti+1]||'max'}</span></div>
+      <div style={{height:3,background:'rgba(255,255,255,.08)',borderRadius:2,overflow:'hidden'}}><div style={{height:'100%',width:`${pct}%`,background:'var(--sge2)',borderRadius:2}}/></div>
+    </div>
+
+    {/* Loyalty Card */}
+    <div onClick={()=>sqr(true)} style={{background:'linear-gradient(135deg,#2A1508,#4A2C14)',borderRadius:14,padding:17,color:'#fff',margin:'-16px 16px 14px',cursor:'pointer',position:'relative',overflow:'hidden',boxShadow:'var(--sh2)'}}>
+      <div style={{position:'absolute',top:-25,right:-25,width:100,height:100,borderRadius:'50%',background:'rgba(200,151,74,.1)'}}/>
+      <div style={{position:'relative',zIndex:1}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:11}}>
+          <div className="serif" style={{fontSize:17}}>Brew<em style={{fontStyle:'italic',color:'var(--gld2)'}}>ly</em> Card</div>
+          <span className="pts-badge">{user.points} pts</span>
+        </div>
+        <div className="serif" style={{fontSize:14,marginBottom:2}}>{user.name}</div>
+        <div style={{fontSize:9,color:'rgba(255,255,255,.4)',marginBottom:10,letterSpacing:.5}}>{user.tier.toUpperCase()} · MEMBER</div>
+        <div style={{fontSize:9,color:'rgba(255,255,255,.4)',marginBottom:4}}>Next free coffee in {Math.max(0,500-user.points)} pts</div>
+        <div style={{height:3,background:'rgba(255,255,255,.12)',borderRadius:2,overflow:'hidden'}}><div style={{height:'100%',width:`${Math.min(100,(user.points/500)*100)}%`,background:'var(--gld)',borderRadius:2}}/></div>
+        <div style={{fontSize:9,color:'rgba(255,255,255,.22)',marginTop:7}}>Tap to view QR code · Flavour web · Brew recommendations</div>
+      </div>
+    </div>
+
+    {/* Currently Drinking on profile */}
+    <div style={{margin:'0 16px 14px'}}>
+      <div className="card" style={{padding:'13px 15px',borderLeft:'3px solid var(--gld)',cursor:'pointer'}} onClick={()=>sCD(true)}>
+        {user.currentDrinking
+          ?<><div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}><span className="cd-dot"/><span style={{fontSize:10,fontWeight:700,color:'var(--gld)',letterSpacing:.8,textTransform:'uppercase'}}>Currently drinking</span></div>
+            <div className="serif" style={{fontSize:15,color:'var(--ink)',marginBottom:2}}>{user.currentDrinking.bean}</div>
+            <div style={{fontSize:11,color:'var(--ink3)'}}>{user.currentDrinking.cafe} · {user.currentDrinking.method}</div>
+          </>
+          :<div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div style={{fontSize:20}}>☕</div>
+            <div style={{fontSize:13,color:'var(--ink3)'}}>Tap to set <strong style={{color:'var(--ink)'}}>Currently Drinking</strong></div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div className="px16">
+      {/* Matched beans */}
+      <div className="lbl mb8">Beans matched to your taste</div>
+      <div style={{marginBottom:14}}>
+        {ALL_BEANS.slice(0,5).sort((a,b)=>matchScore(user.profile,b)-matchScore(user.profile,a)).map(b=>(
+          <div key={b.id} style={{background:'#fff',borderRadius:10,border:'.5px solid var(--b)',padding:'10px 13px',marginBottom:7,display:'flex',alignItems:'center',gap:10}}>
+            <div style={{flex:1,minWidth:0}}>
+              <div className="serif" style={{fontSize:13,color:'var(--ink)',marginBottom:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.name}</div>
+              <div style={{fontSize:10,color:'var(--ink3)'}}>{b.roasteryName} · {b.price}</div>
+            </div>
+            <MatchRing pct={matchScore(user.profile,b)} size={38}/>
+          </div>
+        ))}
+      </div>
+
+      <div className="lbl mb8">You enjoy</div>
+      <div style={{marginBottom:12}}>{user.preferences.likes.map(l=><span key={l} className="chip sge">{l}</span>)}</div>
+      <div className="lbl mb8">You avoid</div>
+      <div style={{marginBottom:16}}>{user.preferences.avoids.map(a=><span key={a} className="chip rst">{a}</span>)}</div>
+    </div>
+
+    {showQR&&<div className="mb" onClick={()=>sqr(false)}>
+      <div className="ms" onClick={e=>e.stopPropagation()}>
+        <div className="mh"/>
+        <div style={{textAlign:'center',marginBottom:14}}>
+          <div className="serif" style={{fontSize:20,color:'var(--ink)',marginBottom:3}}>{user.name}'s Taste Card</div>
+          <div style={{fontSize:11,color:'var(--ink3)',marginBottom:12}}>Show to your barista for a personalised recommendation</div>
+          <div style={{display:'inline-block',background:'#fff',borderRadius:12,padding:12,boxShadow:'var(--sh2)',marginBottom:10}}>
+            <svg width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="white"/>
+              {Array.from({length:7},(_,r)=>Array.from({length:7},(_,c)=>{const v=(r+c+r*c*3)%7<3;return v?<rect key={`${r}-${c}`} x={c*13+5} y={r*13+5} width="11" height="11" rx="2" fill="#1E0F07"/>:null;}).flat())}
+            </svg>
+          </div>
+          <div style={{fontSize:10,color:'var(--ink3)',marginBottom:14}}>BRW-{user.name.toUpperCase().replace(' ','-')}-{user.points}</div>
+        </div>
+        <div style={{display:'flex',gap:10,marginBottom:14}}>
+          <div style={{flex:1,background:'var(--sge3)',borderRadius:12,padding:12}}>
+            <div className="lbl mb8" style={{color:'var(--sge)'}}>✓ Prefers</div>
+            {user.preferences.likes.slice(0,4).map(l=><div key={l} style={{fontSize:11,color:'var(--ink)',marginBottom:3,fontWeight:500}}>{l}</div>)}
+          </div>
+          <div style={{flex:1,background:'var(--rst3)',borderRadius:12,padding:12}}>
+            <div className="lbl mb8" style={{color:'var(--rst)'}}>✗ Avoids</div>
+            {user.preferences.avoids.map(a=><div key={a} style={{fontSize:11,color:'var(--ink)',marginBottom:3,fontWeight:500}}>{a}</div>)}
+            <div className="sep" style={{margin:'6px 0'}}/>
+            <div className="lbl mb8" style={{color:'var(--rst)'}}>Best methods</div>
+            {(user.profile.acidity>7?['V60','Filter']:['Espresso','Milk drink']).map(m=><div key={m} style={{fontSize:11,color:'var(--ink)',marginBottom:3,fontWeight:500}}>{m}</div>)}
+          </div>
+        </div>
+        <div style={{background:'var(--gld3)',borderRadius:12,padding:'11px 13px',marginBottom:12,border:'.5px solid rgba(200,151,74,.35)'}}>
+          <div className="lbl mb8" style={{color:'#7A5010'}}>Top matched beans right now</div>
+          {ALL_BEANS.sort((a,b)=>matchScore(user.profile,b)-matchScore(user.profile,a)).slice(0,3).map(b=>(
+            <div key={b.id} style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4,color:'var(--ink)'}}>
+              <span style={{fontWeight:500}}>{b.name}</span><span style={{color:'var(--gld)',fontWeight:600}}>{matchScore(user.profile,b)}%</span>
+            </div>
+          ))}
+        </div>
+        <button className="btn btn-dk" onClick={()=>{toast('Profile link copied!');sqr(false);}}>Copy Share Link</button>
+      </div>
+    </div>}
+    {showCD&&<SetCDModal user={user} setUser={setUser} onClose={()=>sCD(false)} toast={toast}/>}
+    <div style={{height:20}}/>
+  </div>);
+}
+
+// ═════════════ BARISTA PORTAL (FIXED) ════════════════════════════
+function BaristaPortal({inventory,setInventory,onBack,toast}){
+  const[tab,sTab]=useState('scan');
+  const[scanned,setScan]=useState(null);
+  const[scanning,setScan2]=useState(false);
+  const[addOpen,sAdd]=useState(false);
+  const[newBean,sNB]=useState({name:'',roastery:'',origin:'',process:'Washed',roast:'Light',tasting:'',stock:'High'});
+  const[cafeInfo,sCI]=useState({name:'My Café',addr:'',hours:'',specialties:'',website:'',instagram:''});
+
+  const TABS=[['scan','Scan QR'],['inventory','In Stock'],['insights','Insights'],['purchase','Buy More'],['cafe','My Café']];
+
+  const mockProfile={name:'Alex (scanned)',prefers:['Bright acidity','Fruity'],avoids:['Heavy bitterness'],
+    tier:'Flavour Explorer',points:340,profile:{acidity:7.8,fruitiness:8.5,body:4.2,sweetness:6.5,intensity:4.8}};
+
+  const rankBeans=(profile)=>[...inventory].sort((a,b)=>{
+    const scoreA=Math.abs((a.acidity||5)-(profile.profile.acidity||5))+Math.abs((a.fruitiness||5)-(profile.profile.fruitiness||5));
+    const scoreB=Math.abs((b.acidity||5)-(profile.profile.acidity||5))+Math.abs((b.fruitiness||5)-(profile.profile.fruitiness||5));
+    return scoreA-scoreB;
+  });
+
+  const beanMatchPct=(bean,profile)=>Math.max(0,Math.round(100-((Math.abs((bean.acidity||5)-(profile.profile.acidity||5))+Math.abs((bean.fruitiness||5)-(profile.profile.fruitiness||5)))/20*100)));
+
+  const addBean=()=>{
+    if(!newBean.name)return;
+    // Auto-load from DB
+    const dbMatch=ALL_BEANS.find(b=>b.name.toLowerCase().includes(newBean.name.toLowerCase())||newBean.name.toLowerCase().includes(b.name.toLowerCase().split(' ')[0]));
+    const toAdd={id:'inv'+Date.now(),name:dbMatch?.name||newBean.name,roastery:dbMatch?.roasteryName||newBean.roastery||'Unknown',origin:dbMatch?.origin||newBean.origin,process:dbMatch?.process||newBean.process,roast:dbMatch?.roast||newBean.roast,flavors:dbMatch?.flavors||(newBean.tasting?newBean.tasting.split(',').map(t=>t.trim()):[]),stock:newBean.stock,acidity:dbMatch?.acidity||5,fruitiness:dbMatch?.fruitiness||5,body:dbMatch?.body||5,sweetness:dbMatch?.sweetness||5,intensity:dbMatch?.intensity||5,autoLoaded:!!dbMatch};
+    setInventory(inv=>[...inv,toAdd]);
+    sNB({name:'',roastery:'',origin:'',process:'Washed',roast:'Light',tasting:'',stock:'High'});
+    sAdd(false);
+    toast(dbMatch?`${toAdd.name} added — flavour profile auto-loaded ✓`:'Bean added to inventory ✓');
+  };
+
+  return(<div className="fi">
+    {/* Header */}
+    <div style={{background:'linear-gradient(160deg,#0E2419 0%,var(--ink) 100%)',padding:'22px 20px 26px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:18}}>
+        <button className="bb" onClick={onBack}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div className="serif" style={{fontSize:22,color:'#fff'}}>Barista Portal</div>
+        <div className="live-tag" style={{marginLeft:'auto'}}><div className="live-dot"/>Live</div>
+      </div>
+      <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+        {TABS.map(([id,lb])=><button key={id} className={`bp-tab ${tab===id?'on':'off'}`} onClick={()=>sTab(id)}>{lb}</button>)}
+      </div>
+    </div>
+
+    {/* ── SCAN QR ── */}
+    {tab==='scan'&&<div className="p16">
+      <div className="lbl mb8">Customer QR scan</div>
+      <div style={{background:'var(--cr2)',borderRadius:14,padding:20,textAlign:'center',marginBottom:14,border:'.5px solid var(--b)'}}>
+        <div style={{fontSize:44,marginBottom:10}}>📷</div>
+        <div className="serif" style={{fontSize:17,color:'var(--ink)',marginBottom:6}}>Scan a customer's taste card</div>
+        <div style={{fontSize:13,color:'var(--ink3)',marginBottom:16,lineHeight:1.6}}>Ask the customer to open Brewly → Profile → Show to Barista, then scan their QR code.</div>
+        {!scanning&&!scanned&&<button className="btn btn-dk" onClick={()=>{setScan2(true);setTimeout(()=>{setScan(mockProfile);setScan2(false);},2000);}}>📷 Simulate QR Scan</button>}
+        {scanning&&<div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,padding:'14px',background:'var(--ink)',borderRadius:12,color:'#fff',fontSize:13}}>
+          <span className="spin">⟳</span> Reading QR code…
+        </div>}
+      </div>
+      {scanned&&<div>
+        <div style={{background:'var(--sge3)',borderRadius:13,padding:'13px 15px',marginBottom:14,borderLeft:'2px solid var(--sge)'}}>
+          <div style={{fontSize:11,color:'var(--sge)',fontWeight:700,letterSpacing:.8,textTransform:'uppercase',marginBottom:4}}>✓ Profile loaded</div>
+          <div className="serif" style={{fontSize:18,color:'var(--ink)',marginBottom:2}}>{scanned.name}</div>
+          <div style={{fontSize:12,color:'var(--ink3)',marginBottom:10}}>✦ {scanned.tier} · {scanned.points} pts</div>
+          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+            {scanned.prefers.map(p=><span key={p} className="chip sge" style={{fontSize:11,margin:0,marginRight:5,marginBottom:4}}>✓ {p}</span>)}
+            {scanned.avoids.map(a=><span key={a} className="chip rst" style={{fontSize:11,margin:0,marginRight:5,marginBottom:4}}>✗ {a}</span>)}
+          </div>
+        </div>
+        <div className="lbl mb8">Recommended from your stock</div>
+        {inventory.length===0&&<div style={{background:'var(--rst3)',borderRadius:12,padding:'11px 14px',borderLeft:'2px solid var(--rst)',fontSize:13,color:'var(--ink)'}}>No beans in inventory yet. Add beans in the "In Stock" tab to get recommendations.</div>}
+        {rankBeans(scanned).slice(0,4).map((bean,i)=>(
+          <div key={bean.id} style={{background:'#fff',borderRadius:14,border:`.5px solid ${i===0?'var(--sge)':'var(--b)'}`,padding:'13px 15px',marginBottom:10,display:'flex',alignItems:'center',gap:12}}>
+            <div style={{flex:1}}>
+              {i===0&&<div style={{fontSize:9,color:'var(--sge)',fontWeight:700,letterSpacing:.8,textTransform:'uppercase',marginBottom:4}}>⭐ Top pick</div>}
+              <div className="serif" style={{fontSize:15,color:'var(--ink)',marginBottom:3}}>{bean.name}</div>
+              <div style={{fontSize:11,color:'var(--ink3)',marginBottom:5}}>{bean.roastery} · {bean.origin} · {bean.roast}</div>
+              <div>{(bean.flavors||[]).slice(0,3).map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:'0 3px 0 0'}}>{f}</span>)}</div>
+              {bean.stock==='Low'&&<span style={{fontSize:10,background:'var(--rst3)',color:'var(--rst)',padding:'3px 8px',borderRadius:999,marginTop:5,display:'inline-block'}}>Low stock</span>}
+            </div>
+            <MatchRing pct={beanMatchPct(bean,scanned)} size={46}/>
+          </div>
+        ))}
+        <button className="btn btn-out mt8" style={{marginTop:8}} onClick={()=>{setScan(null);toast('Customer profile cleared');}}>Clear scan</button>
+      </div>}
+    </div>}
+
+    {/* ── IN STOCK ── */}
+    {tab==='inventory'&&<div className="p16">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+        <div className="lbl">Beans in stock ({inventory.length})</div>
+        <button onClick={()=>sAdd(!addOpen)} style={{background:'var(--ink)',color:'#fff',border:'none',borderRadius:8,padding:'7px 13px',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Add bean</button>
+      </div>
+
+      {addOpen&&<div style={{background:'var(--cr2)',borderRadius:14,padding:16,marginBottom:14,border:'.5px solid var(--b)'}}>
+        <div className="serif" style={{fontSize:16,color:'var(--ink)',marginBottom:10}}>Add bean to stock</div>
+        <div style={{background:'var(--sge3)',borderRadius:10,padding:'9px 12px',marginBottom:12,fontSize:11,color:'var(--sge)',lineHeight:1.5,borderLeft:'2px solid var(--sge)'}}>
+          ✦ Type a bean name from our database (e.g. "Lalesa", "K Organics") and the full flavour profile will be auto-loaded.
+        </div>
+        <div style={{marginBottom:10}}><label className="lbl mb8" style={{display:'block',marginBottom:5}}>Bean name</label>
+          <input className="inp" placeholder='"Lalesa Black Honey" or "Ethiopia Yirgacheffe"' value={newBean.name} onChange={e=>sNB(b=>({...b,name:e.target.value}))} style={{fontSize:13}}/>
+          {newBean.name.length>2&&ALL_BEANS.find(b=>b.name.toLowerCase().includes(newBean.name.toLowerCase().split(' ')[0]))&&
+            <div style={{marginTop:5,fontSize:11,color:'var(--sge)',fontWeight:500}}>✓ Found in database — flavour profile will auto-load</div>}
+        </div>
+        <div style={{marginBottom:10}}><label className="lbl mb8" style={{display:'block',marginBottom:5}}>Roastery</label>
+          <input className="inp" placeholder="e.g. Father Coffee" value={newBean.roastery} onChange={e=>sNB(b=>({...b,roastery:e.target.value}))} style={{fontSize:13}}/>
+        </div>
+        <div style={{display:'flex',gap:8,marginBottom:10}}>
+          <div style={{flex:1}}><label className="lbl mb8" style={{display:'block',marginBottom:5}}>Process</label>
+            <select className="inp" style={{appearance:'none',cursor:'pointer'}} value={newBean.process} onChange={e=>sNB(b=>({...b,process:e.target.value}))}>
+              {['Washed','Natural','Honey','Anaerobic','Vacuum Fermented'].map(p=><option key={p}>{p}</option>)}
+            </select>
+          </div>
+          <div style={{flex:1}}><label className="lbl mb8" style={{display:'block',marginBottom:5}}>Roast</label>
+            <select className="inp" style={{appearance:'none',cursor:'pointer'}} value={newBean.roast} onChange={e=>sNB(b=>({...b,roast:e.target.value}))}>
+              {['Light','Light-Medium','Medium','Medium-Dark','Dark'].map(r=><option key={r}>{r}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{marginBottom:10}}><label className="lbl mb8" style={{display:'block',marginBottom:5}}>Tasting notes (or auto-loaded)</label>
+          <input className="inp" placeholder="e.g. Guava, Jasmine, Lemon" value={newBean.tasting} onChange={e=>sNB(b=>({...b,tasting:e.target.value}))} style={{fontSize:13}}/>
+        </div>
+        <div style={{marginBottom:12}}><label className="lbl mb8" style={{display:'block',marginBottom:5}}>Stock level</label>
+          <div style={{display:'flex',gap:7}}>
+            {['High','Medium','Low','Out'].map(s=><button key={s} onClick={()=>sNB(b=>({...b,stock:s}))} style={{flex:1,padding:'9px 4px',borderRadius:9,border:`.5px solid ${newBean.stock===s?'var(--ink)':'var(--b2)'}`,background:newBean.stock===s?'var(--ink)':'var(--cr2)',color:newBean.stock===s?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{s}</button>)}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-dk" style={{flex:2}} onClick={addBean}>Save Bean</button>
+          <button className="btn btn-out" style={{flex:1}} onClick={()=>sAdd(false)}>Cancel</button>
+        </div>
+      </div>}
+
+      {inventory.length===0&&!addOpen&&<div style={{textAlign:'center',padding:'30px 0'}}>
+        <div style={{fontSize:40,marginBottom:10}}>🫘</div>
+        <div className="serif" style={{fontSize:17,color:'var(--ink)',marginBottom:6}}>No beans in stock yet</div>
+        <div style={{fontSize:13,color:'var(--ink3)'}}>Add your first bean above to start matching customers.</div>
+      </div>}
+
+      {inventory.map(b=>(
+        <div key={b.id} style={{display:'flex',alignItems:'flex-start',gap:12,padding:'12px 0',borderBottom:'.5px solid var(--b)'}}>
+          <div className="stock-dot" style={{background:b.stock==='High'?'var(--sge)':b.stock==='Medium'?'var(--gld)':b.stock==='Low'?'var(--rst2)':'#ccc',marginTop:5}}/>
+          <div style={{flex:1}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+              <span className="serif" style={{fontSize:15,color:'var(--ink)'}}>{b.name}</span>
+              {b.autoLoaded&&<span style={{fontSize:9,color:'var(--sge)',fontWeight:600}}>✦ auto-loaded</span>}
+            </div>
+            <div style={{fontSize:11,color:'var(--ink3)',marginBottom:5}}>{b.roastery} · {b.origin} · {b.process} · {b.roast}</div>
+            {b.flavors?.length>0&&<div>{b.flavors.slice(0,4).map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:'0 3px 3px 0'}}>{f}</span>)}</div>}
+          </div>
+          <select value={b.stock} onChange={e=>{setInventory(inv=>inv.map(x=>x.id===b.id?{...x,stock:e.target.value}:x));toast('Stock updated');}} style={{fontSize:11,border:'.5px solid var(--b2)',borderRadius:8,padding:'5px 8px',background:'var(--cr2)',color:'var(--ink)',appearance:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+            {['High','Medium','Low','Out'].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+      ))}
+    </div>}
+
+    {/* ── INSIGHTS ── */}
+    {tab==='insights'&&<div className="p16">
+      <div className="lbl mb12">Customer data — last 30 days</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10,marginBottom:16}}>
+        {[['QR Scans','142','📲'],['Avg acidity ask','6.8/10','🍋'],['Top flavour','Fruity','🫐'],['Low stock','2 beans','⚠️']].map(([l,v,i])=>(
+          <div key={l} style={{background:'#fff',borderRadius:14,padding:'13px 14px',border:'.5px solid var(--b)'}}>
+            <div style={{fontSize:20,marginBottom:6}}>{i}</div>
+            <div className="serif" style={{fontSize:20,color:'var(--ink)'}}>{v}</div>
+            <div style={{fontSize:10,color:'var(--ink3)',marginTop:2}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="lbl mb8">Flavour requests</div>
+      <div className="card" style={{padding:'0 15px',marginBottom:14}}>
+        {[['Fruity',88],['Bright acidity',72],['Chocolate',55],['Floral',41],['Full body',35]].map(([f,p],i,a)=>(
+          <div key={f} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:i<a.length-1?'.5px solid var(--b)':'none'}}>
+            <div style={{fontSize:12,color:'var(--ink)',fontWeight:500,width:120}}>{f}</div>
+            <div className="prog" style={{flex:1}}><div className="prog-f" style={{width:`${p}%`}}/></div>
+            <div style={{fontSize:11,color:'var(--ink3)',width:34,textAlign:'right'}}>{p}%</div>
+          </div>
+        ))}
+      </div>
+      <div style={{background:'var(--rst3)',borderRadius:12,padding:'12px 14px',borderLeft:'2px solid var(--rst2)'}}>
+        <div style={{fontSize:11,fontWeight:600,color:'var(--rst)',marginBottom:4}}>⚠ Taste gap detected</div>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.55}}>38% of customers want full body + low acidity — you have nothing in stock to match. Consider a natural-processed Brazilian or Indonesian.</div>
+      </div>
+    </div>}
+
+    {/* ── BUY MORE ── */}
+    {tab==='purchase'&&<div className="p16">
+      <div style={{background:'var(--sge3)',borderRadius:12,padding:'12px 14px',borderLeft:'2px solid var(--sge)',marginBottom:14}}>
+        <div style={{fontSize:11,fontWeight:600,color:'var(--sge)',marginBottom:4}}>Based on your customer data</div>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.55}}>38% of your QR scans have full-body, low-acid preferences you can't currently satisfy. The DRC or Burundi singles from Bean There would close this gap immediately.</div>
+      </div>
+      <div className="lbl mb8">Recommended to stock</div>
+      {ALL_BEANS.filter(b=>b.body>6||b.acidity<5).slice(0,4).map(b=>{
+        const r=ROASTERIES.find(x=>x.id===b.roasteryId);
+        return(<div key={b.id} style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'12px 14px',marginBottom:10}}>
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:7}}>
+            <div><div className="serif" style={{fontSize:15,color:'var(--ink)',marginBottom:2}}>{b.name}</div><div style={{fontSize:11,color:'var(--ink3)'}}>{r?.name} · {b.origin}</div></div>
+            <span className="pts-badge" style={{background:'var(--gld3)',color:'var(--ink2)',border:'.5px solid rgba(200,151,74,.4)'}}>{b.price}</span>
+          </div>
+          <div style={{marginBottom:8}}>{b.flavors.map(f=><span key={f} className="chip gld" style={{fontSize:10,padding:'2px 7px',margin:'2px 3px'}}>{f}</span>)}</div>
+          <div style={{display:'flex',gap:8}}>
+            <button style={{flex:1,padding:'9px',borderRadius:9,background:'var(--ink)',color:'#fff',border:'none',fontFamily:'Inter,sans-serif',fontSize:12,cursor:'pointer'}} onClick={()=>toast(`Opening ${r?.website||r?.name} to order…`)}>Order from {r?.name?.split(' ')[0]}</button>
+            <button style={{flex:1,padding:'9px',borderRadius:9,background:'var(--cr2)',color:'var(--ink)',border:'.5px solid var(--b)',fontFamily:'Inter,sans-serif',fontSize:12,cursor:'pointer'}} onClick={()=>toast('Added to wishlist')}>+ Wishlist</button>
+          </div>
+        </div>);
+      })}
+      {inventory.filter(b=>b.stock==='Low'||b.stock==='Out').length>0&&<>
+        <div className="lbl mb8 mt12">Low stock alerts</div>
+        <div className="card" style={{padding:'0 15px'}}>
+          {inventory.filter(b=>b.stock==='Low'||b.stock==='Out').map((b,i,a)=>(
+            <div key={b.id} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 0',borderBottom:i<a.length-1?'.5px solid var(--b)':'none'}}>
+              <div className="stock-dot" style={{background:b.stock==='Out'?'var(--rst)':'var(--gld)'}}/>
+              <div style={{flex:1,fontSize:13,color:'var(--ink)',fontWeight:500}}>{b.name}</div>
+              <span style={{fontSize:10,padding:'3px 9px',borderRadius:999,background:b.stock==='Out'?'var(--rst3)':'var(--gld3)',color:b.stock==='Out'?'var(--rst)':'#7A5010'}}>{b.stock}</span>
+              <button style={{fontSize:11,background:'var(--ink)',color:'#fff',border:'none',borderRadius:7,padding:'5px 10px',cursor:'pointer',fontFamily:'Inter,sans-serif'}} onClick={()=>toast(`Contacting ${b.roastery}…`)}>Reorder</button>
+            </div>
+          ))}
+        </div>
+      </>}
+    </div>}
+
+    {/* ── MY CAFÉ ── */}
+    {tab==='cafe'&&<div className="p16">
+      {[['Café name',cafeInfo.name,v=>sCI(c=>({...c,name:v})),'text'],['Address',cafeInfo.addr,v=>sCI(c=>({...c,addr:v})),'text'],['Opening hours',cafeInfo.hours,v=>sCI(c=>({...c,hours:v})),'text'],['Specialties (comma separated)',cafeInfo.specialties,v=>sCI(c=>({...c,specialties:v})),'text'],['Website',cafeInfo.website,v=>sCI(c=>({...c,website:v})),'url'],['Instagram',cafeInfo.instagram,v=>sCI(c=>({...c,instagram:v})),'text']].map(([lbl,val,onChange,type])=>(
+        <div key={lbl} style={{marginBottom:13}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:5}}>{lbl}</label>
+          <input className="inp" type={type} value={val} onChange={e=>onChange(e.target.value)} placeholder={`Enter ${lbl.toLowerCase()}`} style={{fontSize:13}}/>
+        </div>
+      ))}
+      <div style={{background:'var(--sge3)',borderRadius:12,padding:'12px 14px',borderLeft:'2px solid var(--sge)',marginBottom:14}}>
+        <div style={{fontSize:11,color:'var(--sge)',fontWeight:600,marginBottom:4}}>✓ Verified café badge</div>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.55}}>Verified cafés display a ✓ badge in Discovery and rank higher in taste-matched results for customers.</div>
+      </div>
+      <button className="btn btn-dk" onClick={()=>toast('Café profile saved ✓')}>Save Changes</button>
+    </div>}
+
+    <div style={{height:24}}/>
+  </div>);
+}
+
+// ═════════════ LOG ════════════════════════════════════════════════
+function LogCoffee({user,onBack,onDone,toast}){
+  const[f,sf]=useState({beanName:'',cafeName:'',roasteryName:'',method:'',rating:0,liked:null,review:'',kudos:''});
+  const set=(k,v)=>sf(x=>({...x,[k]:v}));
+  const METHODS=['Espresso','V60','AeroPress','Milk drink','Cold brew','French press','Chemex','Batch brew'];
+
+  return(<div className="fi">
+    <div style={{display:'flex',alignItems:'center',gap:11,padding:'16px 16px 12px'}}>
+      <button className="bbl" onClick={onBack}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div className="serif" style={{fontSize:18,color:'var(--ink)'}}>Log a Coffee</div>
+    </div>
+    <div className="px16" style={{paddingBottom:24}}>
+      <div style={{marginBottom:13}}>
+        <label className="lbl mb8" style={{display:'block',marginBottom:6}}>☕ Bean</label>
+        <div style={{display:'flex',gap:8,overflowX:'auto',scrollbarWidth:'none',marginBottom:8,paddingBottom:2}}>
+          {ALL_BEANS.slice(0,6).map(b=><div key={b.id} onMouseDown={()=>{set('beanName',b.name);set('roasteryName',b.roasteryName);}} style={{background:'#fff',border:`.5px solid ${f.beanName===b.name?'var(--sge)':'var(--b)'}`,borderRadius:10,padding:'9px 12px',minWidth:148,flexShrink:0,cursor:'pointer'}}>
+            <div style={{fontSize:10,color:'var(--ink3)',marginBottom:2}}>{b.roasteryName}</div>
+            <div style={{fontSize:11,fontWeight:500,color:'var(--ink)',lineHeight:1.2,marginBottom:3}}>{b.name}</div>
+            <div style={{fontSize:10,color:'var(--sge)',fontWeight:500}}>{b.flavors.slice(0,2).join(', ')}</div>
+          </div>)}
+        </div>
+        <input className="inp" placeholder="Or type bean name…" value={f.beanName} onChange={e=>set('beanName',e.target.value)} style={{fontSize:13}}/>
+      </div>
+      <div style={{marginBottom:13}}>
+        <label className="lbl mb8" style={{display:'block',marginBottom:6}}>🏭 Roastery</label>
+        <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:6}}>
+          {ROASTERIES.slice(0,5).map(r=><button key={r.id} onClick={()=>set('roasteryName',r.name)} style={{padding:'6px 11px',borderRadius:999,border:`.5px solid ${f.roasteryName===r.name?'var(--ink)':'var(--b2)'}`,background:f.roasteryName===r.name?'var(--ink)':'var(--cr2)',color:f.roasteryName===r.name?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{r.emoji} {r.name.split(' ')[0]}</button>)}
+        </div>
+        <input className="inp" placeholder="Or type roastery name" value={f.roasteryName} onChange={e=>set('roasteryName',e.target.value)} style={{fontSize:13}}/>
+      </div>
+      <div style={{marginBottom:13}}>
+        <label className="lbl mb8" style={{display:'block',marginBottom:6}}>🏪 Coffee shop</label>
+        <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:6}}>
+          {ALL_CAFES.slice(0,5).map(c=><button key={c.name+c.roasteryId} onClick={()=>set('cafeName',c.roasteryName+' '+c.name)} style={{padding:'6px 11px',borderRadius:999,border:`.5px solid ${f.cafeName.includes(c.name)?'var(--ink)':'var(--b2)'}`,background:f.cafeName.includes(c.name)?'var(--ink)':'var(--cr2)',color:f.cafeName.includes(c.name)?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{c.name}</button>)}
+        </div>
+        <input className="inp" placeholder="Or type café name" value={f.cafeName} onChange={e=>set('cafeName',e.target.value)} style={{fontSize:13}}/>
+      </div>
+      <div style={{marginBottom:13}}>
+        <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Brew method</label>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
+          {METHODS.map(m=><button key={m} onClick={()=>set('method',m)} style={{padding:'9px 4px',borderRadius:9,border:`.5px solid ${f.method===m?'var(--ink)':'var(--b2)'}`,background:f.method===m?'var(--ink)':'var(--cr2)',color:f.method===m?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:500,cursor:'pointer'}}>{m}</button>)}
+        </div>
+      </div>
+      <div style={{marginBottom:13}}><label className="lbl mb8" style={{display:'block',marginBottom:6}}>Rating</label><Stars val={f.rating} onChange={v=>set('rating',v)}/></div>
+      <div style={{marginBottom:13}}><label className="lbl mb8" style={{display:'block',marginBottom:6}}>Would you order again?</label>
+        <div style={{display:'flex',gap:8}}>
+          {[['Yes ✓',true],['Maybe',null],['No ✗',false]].map(([lb,val])=><button key={lb} onClick={()=>set('liked',val)} style={{flex:1,padding:'10px',borderRadius:9,border:`.5px solid ${f.liked===val?'var(--ink)':'var(--b2)'}`,background:f.liked===val?'var(--ink)':'var(--cr2)',color:f.liked===val?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:12,cursor:'pointer'}}>{lb}</button>)}
+        </div>
+      </div>
+      <div style={{marginBottom:13}}><label className="lbl mb8" style={{display:'block',marginBottom:6}}>Review — +25 pts (optional)</label>
+        <textarea className="ta" placeholder="Share your thoughts with the community…" value={f.review} onChange={e=>set('review',e.target.value)}/>
+      </div>
+      <div style={{marginBottom:16}}><label className="lbl mb8" style={{display:'block',marginBottom:6}}>Kudos to barista — +5 pts (optional)</label>
+        <input className="inp" placeholder="e.g. James pulled a perfect shot" value={f.kudos} onChange={e=>set('kudos',e.target.value)} style={{fontSize:13}}/>
+      </div>
+      <button className="btn btn-dk" onClick={()=>{const pts=10+(f.review?25:0)+(f.kudos?5:0);onDone({...f,id:Date.now(),date:new Date().toLocaleDateString('en-ZA',{day:'numeric',month:'short'}),pts});}}>☕ Save to profile</button>
+    </div>
+  </div>);
+}
+
+// ═════════════ ROOT APP ══════════════════════════════════════════
+function App(){
+  const[user,setUser]=useState({...USER_MOCK,points:340});
+  const[inventory,setInventory]=useState([
+    {id:'inv1',name:'Antimaceration Geisha by El Paraíso',roastery:'Father Coffee',origin:'Colombia',process:'Vacuum Fermented',roast:'Light',flavors:['Guava','Pineapple','Passionfruit','Cola'],stock:'High',acidity:8.5,fruitiness:10,body:8,sweetness:8,intensity:9,autoLoaded:true},
+    {id:'inv2',name:'Ethiopia Single Origin',roastery:'Bean There',origin:'Ethiopia',process:'Washed',roast:'Light-Medium',flavors:['Jasmine','Bergamot','Lemon','Peach'],stock:'Medium',acidity:8.5,fruitiness:8.5,body:3.5,sweetness:6.5,intensity:4.5,autoLoaded:true},
+    {id:'inv3',name:'Campbell Road House Blend',roastery:'Seam Coffee',origin:'Ethiopia/Colombia',process:'Mixed',roast:'Medium',flavors:['Milk chocolate','Treacle sugar','Brown sugar'],stock:'Low',acidity:5.5,fruitiness:5,body:6.5,sweetness:8.5,intensity:6,autoLoaded:true},
+  ]);
+  const[following,sf]=useState(['u1','u3']);
+  const[logs,sl]=useState([{id:1,beanName:'Lalesa Black Honey',cafeName:'Father Kramerville',method:'V60',rating:5,date:'2 Apr'},{id:2,beanName:'Ethiopia Single Origin',cafeName:'Bean There JHB',method:'V60',rating:4,date:'28 Mar'}]);
+  const[screen,ss]=useState('home');
+  const[logging,sl2]=useState(false);
+  const[success,ssu]=useState(null);
+  const[toast,st]=useState('');
+
+  const showToast=m=>st(m);
+  const handleLogDone=log=>{sl(l=>[...l,log]);setUser(u=>({...u,logs:u.logs+1,points:u.points+log.pts}));sl2(false);ssu(log);};
+
+  const NAV=[
+    {id:'home',lbl:'Home',ic:()=><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>},
+    {id:'discover',lbl:'Discover',ic:()=><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>},
+    {id:'log',lbl:'Log',ic:()=><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>},
+    {id:'profile',lbl:'Profile',ic:()=><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>},
+  ];
+
+  const hideNav=logging||!!success||screen==='barista';
+
+  if(success)return<div className="shell"><div className="view"><div className="fi" style={{background:'var(--ink)',minHeight:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 28px',textAlign:'center',color:'#fff'}}>
+    <div style={{width:80,height:80,borderRadius:'50%',background:'rgba(109,140,106,.2)',border:'1px solid var(--sge2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:36,marginBottom:20}}>☕</div>
+    <div className="serif" style={{fontSize:26,marginBottom:6}}>Logged!</div>
+    <div style={{fontSize:13,color:'rgba(255,255,255,.45)',marginBottom:14}}>{success.beanName} at {success.cafeName}</div>
+    <div style={{display:'flex',gap:8,justifyContent:'center',marginBottom:20,flexWrap:'wrap'}}>
+      <span className="pts-badge">+{success.pts} pts</span>
+      {success.review&&<span style={{fontSize:11,background:'rgba(109,140,106,.25)',color:'var(--sge2)',padding:'4px 10px',borderRadius:999}}>Review published ✓</span>}
+    </div>
+    <button onClick={()=>{ssu(null);ss('home');}} style={{background:'var(--gld)',color:'#fff',border:'none',borderRadius:10,padding:'13px',fontSize:14,fontWeight:500,cursor:'pointer',width:'100%',fontFamily:'Inter,sans-serif'}}>Back to Home</button>
+  </div></div></div>;
+
+  return(<div className="shell">
+    <div className="view">
+      {logging?<LogCoffee user={user} onBack={()=>sl2(false)} onDone={handleLogDone} toast={showToast}/>:
+       screen==='home'?<Home user={user} setUser={setUser} following={following} onLog={()=>sl2(true)} onGoTo={ss} toast={showToast}/>:
+       screen==='discover'?<Discover user={user} toast={showToast}/>:
+       screen==='profile'?<Profile user={user} setUser={setUser} logs={logs} following={following} onGoTo={ss} toast={showToast}/>:
+       screen==='barista'?<BaristaPortal inventory={inventory} setInventory={setInventory} onBack={()=>ss('profile')} toast={showToast}/>:null}
+    </div>
+    {!hideNav&&<nav className="nav">
+      {NAV.map(({id,lbl,ic:Ic})=>(
+        <button key={id} className={`nb${screen===id?' on':''}`} onClick={()=>id==='log'?sl2(true):ss(id)}>
+          <Ic/>{lbl}<div className="pip"/>
+        </button>
+      ))}
+    </nav>}
+    {toast&&<Toast msg={toast} onDone={()=>st('')}/>}
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

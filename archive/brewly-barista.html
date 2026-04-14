@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Brewly Barista</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#0A1A0E;overflow:hidden;-webkit-font-smoothing:antialiased}
+/* ── EXACT SAME TOKENS AS MAIN APP ── */
+:root{
+  --cr:#FAF8F3;--cr2:#F2EDE3;--cr3:#E8DFD0;
+  --ink:#1E0F07;--ink2:#3D2010;--ink3:#6B4030;
+  --gld:#C8974A;--gld2:#E8C07A;--gld3:#F5E4C0;
+  --sge:#6D8C6A;--sge2:#9DB89A;--sge3:#E2F0DF;
+  --rst:#A83820;--rst2:#D4614A;--rst3:#FCEAE6;
+  --pur:#7C3AED;--pur2:#EDE9FE;
+  --b:rgba(30,15,7,.08);--b2:rgba(30,15,7,.14);--b3:rgba(30,15,7,.22);
+  --sh:0 1px 8px rgba(30,15,7,.06);--sh2:0 4px 20px rgba(30,15,7,.10);--sh3:0 12px 40px rgba(30,15,7,.15);
+  /* Barista-specific — dark green accent instead of espresso */
+  --ba:#0D2B12;--ba2:#1A4520;--ba3:#2A6B32;--ba4:#3D9B48;--ba5:#5CC466;
+}
+body{display:flex;align-items:center;justify-content:center}
+.shell{width:390px;height:820px;background:var(--ba);border-radius:32px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.8)}
+.view{flex:1;overflow-y:auto;overflow-x:hidden}.view::-webkit-scrollbar{display:none}
+/* Bottom nav — green tinted */
+.nav{display:flex;background:#0F2214;border-top:.5px solid rgba(61,155,72,.25);padding:6px 0 8px;flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;background:none;border:none;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:rgba(93,196,102,.45);cursor:pointer}
+.nb.on{color:var(--ba5)}.nb svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5}
+.pip{width:4px;height:4px;border-radius:2px;background:var(--ba4);opacity:0;margin-top:1px}.nb.on .pip{opacity:1}
+/* Shared component styles — identical to main app */
+.serif{font-family:'Cormorant Garamond',serif}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-dk{background:var(--ink);color:#fff}.btn-grn{background:var(--ba3);color:#fff}.btn-sge{background:var(--sge);color:#fff}.btn-out{background:transparent;border:.5px solid var(--b3);color:var(--ink)}
+.inp{width:100%;padding:11px 14px;border-radius:10px;border:.5px solid var(--b2);background:var(--cr2);font-size:13px;color:var(--ink);outline:none;font-family:'Inter',sans-serif}
+.inp:focus{border-color:var(--ba4);background:#fff}.inp::placeholder{color:var(--ink3)}
+.ta{width:100%;padding:10px 14px;border-radius:10px;border:.5px solid var(--b2);background:var(--cr2);font-size:13px;color:var(--ink);outline:none;font-family:'Inter',sans-serif;resize:none;min-height:72px;line-height:1.5}
+.ta:focus{border-color:var(--ba4)}
+.chip{display:inline-block;padding:5px 11px;border-radius:999px;font-size:11px;border:.5px solid var(--b2);background:var(--cr2);color:var(--ink);cursor:pointer;margin:3px;font-weight:500}
+.chip.on{background:var(--ink);color:#fff}.chip.sge{background:var(--sge3);color:var(--sge);border-color:rgba(109,140,106,.3)}.chip.gld{background:var(--gld3);color:var(--ink2)}.chip.rst{background:var(--rst3);color:var(--rst)}.chip.grn{background:rgba(61,155,72,.12);color:var(--ba4);border-color:rgba(61,155,72,.3)}
+.card{background:#fff;border:.5px solid var(--b);border-radius:14px;box-shadow:var(--sh)}
+.mb{position:absolute;inset:0;background:rgba(10,26,14,.72);z-index:200;display:flex;align-items:flex-end}
+.ms{background:var(--cr);border-radius:24px 24px 0 0;width:100%;max-height:92%;overflow-y:auto;padding:18px 18px 30px}
+.ms::-webkit-scrollbar{display:none}.mh{width:38px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 16px}
+.toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ba2);color:#fff;padding:9px 18px;border-radius:999px;font-size:12px;font-weight:600;z-index:999;white-space:nowrap;pointer-events:none;animation:tin .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.4);border:.5px solid rgba(93,196,102,.3)}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.fi{animation:up .18s ease}
+@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.sep{height:.5px;background:var(--b);margin:10px 0}
+.p16{padding:16px}.px16{padding-left:16px;padding-right:16px}
+.pts{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;background:var(--gld3);color:var(--ink2);font-size:11px;font-weight:600;border:.5px solid rgba(200,151,74,.4)}
+.hot-b{background:linear-gradient(135deg,#FF4500,#FF8C00);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:3px}
+.rise-b{background:var(--pur2);color:var(--pur);font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px}
+.star{font-size:26px;cursor:pointer;color:rgba(30,15,7,.12)}.star.lit{color:var(--gld)}
+.mr{border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.mr-in{border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--ink);font-size:10px;position:absolute}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.live-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#fff;background:var(--ba3);padding:2px 8px;border-radius:999px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--ba5);animation:pulse 1.5s infinite}
+.ftab-row{display:flex;border-bottom:.5px solid var(--b);background:#fff;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.ftab-row::-webkit-scrollbar{display:none}
+.ftab{padding:10px 13px;text-align:center;font-size:11px;font-weight:500;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0}
+.ftab.on{color:var(--ink);border-bottom-color:var(--ba4)}
+.prog{height:4px;background:var(--b);border-radius:2px;overflow:hidden}
+.prog-f{height:100%;background:var(--ba4);border-radius:2px}
+/* QR scanner sim */
+.qr-frame{width:200px;height:200px;border:2px solid var(--ba4);border-radius:16px;position:relative;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.qr-corner{position:absolute;width:20px;height:20px;border-color:var(--ba4);border-style:solid}
+.qr-corner.tl{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+.qr-corner.tr{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+.qr-corner.bl{bottom:-2px;left:-2px;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+.qr-corner.br{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+.scan-line{position:absolute;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,var(--ba4),transparent);animation:scan 2s ease-in-out infinite}
+@keyframes scan{0%{top:10px;opacity:1}50%{opacity:.7}100%{top:calc(100% - 12px);opacity:1}}
+/* Alert badge */
+.alert-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--rst);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;border:2px solid var(--ba)}
+/* Feed item — identical to main app */
+.feed-item{padding:12px 16px;border-bottom:.5px solid var(--b);background:#fff}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo,useCallback}=React;
+
+
+// ═══════════════════════════════════════════════════════════════
+// SHARED DATA — 100% IDENTICAL TO MAIN APP
+// Changes here must be mirrored in brewly-v8-live.html
+// ═══════════════════════════════════════════════════════════════
+
+const ROASTERIES=[
+  {id:'father',name:'Father Coffee',city:'Johannesburg',color:'#2A1810',emoji:'☕',website:'father.coffee',
+   desc:'JHB\'s most innovative specialty roaster. 46+ coffees annually, rare Geisha releases, vacuum fermentation.',
+   tags:['Microlots','Experimental','Geisha specialist'],
+   locations:[{name:'Kramerville',addr:'142 Fox St, Kramerville',lat:-26.2041,lng:28.0473,hours:'Mon–Sat 7–17'},
+              {name:'Rosebank',addr:'The Zone, Oxford Rd',lat:-26.1472,lng:28.0438,hours:'Mon–Sun 7–18'}],
+   beans:[
+    {id:'f1',name:'Antimaceration Geisha by El Paraíso',origin:'Colombia',process:'Vacuum Fermented',roast:'Light',score:91,price:'R529',flavors:['Guava','Pineapple','Passionfruit','Cola','Cacao'],acidity:8.5,body:8,sweetness:8,fruitiness:10,intensity:9,aroma:9,finish:8,trend:'hot',week:58,p30:142,trendPct:38,methods:['V60','Chemex','Filter']},
+    {id:'f2',name:'Lalesa Black Honey, Yirgacheffe',origin:'Ethiopia',process:'Black Honey',roast:'Light',score:87.5,price:'R359',flavors:['Guava','Apricot','Toffee','Mango'],acidity:7,body:6,sweetness:9,fruitiness:9,intensity:7,aroma:8,finish:7.5,trend:'rising',week:34,p30:89,trendPct:22,methods:['V60','AeroPress','Espresso']},
+    {id:'f3',name:'K Organics Anaerobic Natural, Huye',origin:'Rwanda',process:'Anaerobic Natural',roast:'Light',score:93,price:'R1379',flavors:['Blueberry jam','Hibiscus','Dark chocolate','Red wine'],acidity:8,body:7,sweetness:9.5,fruitiness:9.5,intensity:8.5,aroma:9,finish:9,trend:'rising',week:29,p30:63,trendPct:46,methods:['V60','Cold brew']},
+    {id:'f4',name:'Pink Bourbon by Diego Bermudez',origin:'Colombia',process:'Washed',roast:'Light',score:89,price:'R489',flavors:['Rose','Raspberry','Lychee'],acidity:8,body:4.5,sweetness:8.5,fruitiness:8.5,intensity:5,aroma:8.5,finish:7.5,trend:'steady',week:18,p30:67,trendPct:2,methods:['V60','Filter']},
+   ]},
+  {id:'beanthere',name:'Bean There Coffee Company',city:'Johannesburg',color:'#1E2A18',emoji:'🌍',website:'beanthere.co.za',
+   desc:'Pioneer of direct trade in SA since 2006. Exclusively African single origins.',
+   tags:['Direct trade','African only','Fair trade'],
+   locations:[{name:'Braamfontein',addr:'25 Paul Nel St, Braamfontein',lat:-26.1934,lng:28.0345,hours:'Mon–Sat 7–17'}],
+   beans:[
+    {id:'bt1',name:'Ethiopia Single Origin',origin:'Ethiopia',process:'Washed',roast:'Light-Medium',score:86,price:'R155',flavors:['Jasmine','Bergamot','Lemon','Peach'],acidity:8.5,body:3.5,sweetness:6.5,fruitiness:8.5,intensity:4.5,aroma:8.5,finish:7,trend:'hot',week:72,p30:210,trendPct:15,methods:['V60','Batch brew']},
+    {id:'bt2',name:'Kenya Single Origin',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:87,price:'R155',flavors:['Blackcurrant','Brown sugar','Citrus'],acidity:9,body:5,sweetness:6.5,fruitiness:8.5,intensity:6,aroma:7.5,finish:7.5,trend:'steady',week:61,p30:187,trendPct:5,methods:['V60','Espresso']},
+    {id:'bt3',name:'Rwanda Single Origin',origin:'Rwanda',process:'Washed',roast:'Light',score:86,price:'R150',flavors:['Peach','Rose','Orange zest'],acidity:7.5,body:4.5,sweetness:8,fruitiness:7.5,intensity:4.5,aroma:8,finish:7,trend:'new',week:28,p30:134,trendPct:0,methods:['V60','AeroPress']},
+    {id:'bt4',name:'Burundi Single Origin',origin:'Burundi',process:'Washed',roast:'Light-Medium',score:85,price:'R140',flavors:['Black plum','Cinnamon','Dark chocolate'],acidity:7.5,body:5.5,sweetness:7.5,fruitiness:7,intensity:5.5,aroma:7.5,finish:7.5,trend:'steady',week:22,p30:89,trendPct:4,methods:['Espresso','Milk drink']},
+   ]},
+  {id:'seam',name:'Seam Coffee',city:'Johannesburg',color:'#282018',emoji:'🌱',website:'seam.co.za',
+   desc:'Founded 2017 by David Walstra. Campbell Road blend. Direct trade Fourways roastery.',
+   tags:['Direct trade','Fourways','Sustainable'],
+   locations:[{name:'Fourways',addr:'75 Century Blvd, Riversands',lat:-26.0001,lng:28.0024,hours:'Mon–Fri 7–17'}],
+   beans:[
+    {id:'sm1',name:'Campbell Road House Blend',origin:'Ethiopia / Colombia',process:'Mixed',roast:'Medium',score:85,price:'R185',flavors:['Milk chocolate','Treacle sugar','Brown sugar'],acidity:5.5,body:6.5,sweetness:8.5,fruitiness:5,intensity:6,aroma:7,finish:7,trend:'steady',week:34,p30:145,trendPct:3,methods:['Espresso','Milk drink']},
+    {id:'sm2',name:'Ethiopia Yirgacheffe Single Origin',origin:'Ethiopia',process:'Washed',roast:'Light',score:87,price:'R210',flavors:['Jasmine','Lemon','Bergamot'],acidity:8.5,body:3.5,sweetness:7,fruitiness:9,intensity:4.5,aroma:9,finish:7.5,trend:'rising',week:28,p30:89,trendPct:31,methods:['V60','Filter']},
+    {id:'sm3',name:'Rwanda Nyamasheke Natural',origin:'Rwanda',process:'Natural',roast:'Light',score:88,price:'R220',flavors:['Strawberry','Hibiscus','Rose','Honey'],acidity:7,body:5.5,sweetness:9,fruitiness:8.5,intensity:5,aroma:8.5,finish:8,trend:'rising',week:22,p30:61,trendPct:28,methods:['V60','Cold brew']},
+   ]},
+  {id:'rosetta',name:'Rosetta Roastery',city:'Cape Town',color:'#1A2A18',emoji:'🌿',website:'rosettaroastery.com',
+   desc:'Award-winning Cape Town roaster. Classic and Progressive tiers. Direct trade.',
+   tags:['Award-winning','Direct trade','CPT icon'],
+   locations:[{name:'De Waterkant',addr:'8 Jarvis St, De Waterkant',lat:-33.9166,lng:18.4182,hours:'Mon–Sun 7–18'}],
+   beans:[
+    {id:'r1',name:'Yirgacheffe Kochere',origin:'Ethiopia',process:'Washed',roast:'Light',score:92,price:'R260',flavors:['Bergamot','Lemon','White jasmine'],acidity:9,body:3,sweetness:7,fruitiness:9,intensity:3.5,aroma:9.5,finish:8,trend:'hot',week:52,p30:145,trendPct:20,methods:['V60','Filter']},
+    {id:'r2',name:'Kenya Thiriku AA',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:91,price:'R275',flavors:['Blackcurrant','Peach','Brown sugar'],acidity:8.5,body:5.5,sweetness:7,fruitiness:8,intensity:5.5,aroma:8,finish:8,trend:'rising',week:41,p30:123,trendPct:24,methods:['V60','Espresso']},
+   ]},
+  {id:'truth',name:'Truth. Coffee',city:'Cape Town',color:'#201820',emoji:'⚙️',website:'truth.coffee',
+   desc:'World\'s best café 2014. Steampunk. Destination café Buitenkant St.',
+   tags:['World-class','Steampunk'],
+   locations:[{name:'Buitenkant St',addr:'36 Buitenkant St',lat:-33.9249,lng:18.4241,hours:'Mon–Sat 7–18'}],
+   beans:[
+    {id:'t1',name:'The Gospel — Ethiopia Gedeb',origin:'Ethiopia',process:'Washed',roast:'Light',score:92,price:'R255',flavors:['Jasmine','Bergamot','White peach'],acidity:8.5,body:3.5,sweetness:7.5,fruitiness:9,intensity:4,aroma:9.5,finish:8.5,trend:'rising',week:41,p30:98,trendPct:28,methods:['V60','Chemex']},
+   ]},
+  {id:'origin',name:'Origin Coffee Roasting',city:'Cape Town',color:'#182028',emoji:'🔬',website:'originroasting.co.za',
+   desc:'Founded 2005. Godfather of SA specialty. Widest single-origin selection in SA.',
+   tags:['Pioneer','Widest selection','De Waterkant'],
+   locations:[{name:'De Waterkant',addr:'28 Hudson St',lat:-33.9162,lng:18.4188,hours:'Mon–Sun 7–17'}],
+   beans:[
+    {id:'o1',name:'Ethiopia Yirgacheffe Washed',origin:'Ethiopia',process:'Washed',roast:'Light',score:90,price:'R245',flavors:['Bergamot','Floral','Citrus'],acidity:8.5,body:3.5,sweetness:7,fruitiness:9,intensity:4,aroma:9,finish:8,trend:'hot',week:48,p30:178,trendPct:22,methods:['V60','Siphon']},
+    {id:'o2',name:'Kenya Nyeri AB',origin:'Kenya',process:'Washed',roast:'Light-Medium',score:89,price:'R260',flavors:['Blackcurrant','Peach','Wine-like'],acidity:8.5,body:5,sweetness:7,fruitiness:8.5,intensity:5.5,aroma:8,finish:8,trend:'rising',week:38,p30:134,trendPct:19,methods:['Espresso','V60']},
+   ]},
+];
+
+const ALL_BEANS=ROASTERIES.flatMap(r=>r.beans.map(b=>({...b,roasteryId:r.id,roasteryName:r.name,roasteryEmoji:r.emoji,roasteryColor:r.color})));
+const ALL_CAFES=ROASTERIES.flatMap(r=>r.locations.map(l=>({...l,roasteryId:r.id,roasteryName:r.name,emoji:r.emoji,color:r.color,hotBeans:r.beans.filter(b=>b.trend==='hot').map(b=>b.name)})));
+
+const BARISTAS=[
+  {id:'ba1',name:'James Osei',cafe:'Father Kramerville',cafeId:'father',emoji:'⚡',specialties:['V60','Geisha specialist','Competition prep'],yrs:6,kudos:341,rating:4.9,bio:'WBC 2023 competitor. Specialises in rare Geisha extractions.'},
+  {id:'ba2',name:'Nia Dlamini',cafe:'Bean There Braamfontein',cafeId:'beanthere',emoji:'🌿',specialties:['Filter','Washed origins','Latte art'],yrs:4,kudos:218,rating:4.8,bio:'African origins expert. Runs community cupping workshops.'},
+  {id:'ba3',name:'Marco Visagie',cafe:'Father Rosebank',cafeId:'father',emoji:'☕',specialties:['Espresso','Natural process','Milk drinks'],yrs:3,kudos:156,rating:4.7,bio:'Natural process devotee. Best milk-steaming in Rosebank.'},
+  {id:'ba4',name:'David Levy',cafe:'Origin De Waterkant',cafeId:'origin',emoji:'🔬',specialties:['Siphon','Chemex','Brew bar'],yrs:7,kudos:412,rating:4.9,bio:'Origin\'s lead brew bar barista. SA National Barista Champion finalist.'},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// SHARED BACKEND — same dual localStorage/Supabase as main app
+// ═══════════════════════════════════════════════════════════════
+const SUPA_URL='https://ubqcmjetlbnxjumeqivh.supabase.co';
+const SUPA_KEY='sb_publishable_QRGkTIMHZqO4ZF6daQclBQ_wBXflPT8';
+const USE_SUPABASE=SUPA_KEY.startsWith('eyJ');
+let supa=null;
+if(USE_SUPABASE&&window.supabase){
+  try{supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);}catch(e){console.warn('Supabase init:',e);}
+}
+
+const LS={
+  get(k,d=null){try{const v=localStorage.getItem('brewly_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem('brewly_'+k,JSON.stringify(v));}catch(e){}},
+  del(k){localStorage.removeItem('brewly_'+k);},
+};
+
+// Barista-specific local storage
+const LSB={
+  get(k,d=null){try{const v=localStorage.getItem('brewly_ba_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem('brewly_ba_'+k,JSON.stringify(v));}catch(e){}},
+};
+
+const localAuth={
+  async signUp(email,password,name){
+    const users=LS.get('users',{});
+    if(users[email])throw new Error('Email already registered');
+    const id='ba_user_'+Date.now();
+    const user={id,email,name,is_barista:true,created_at:new Date().toISOString()};
+    users[email]={...user,password};
+    LS.set('users',users);
+    LS.set('ba_session',{user,email});
+    return {user};
+  },
+  async signIn(email,password){
+    const users=LS.get('users',{});
+    const u=users[email];
+    if(!u)throw new Error('No account found. Create one first.');
+    if(u.password!==password)throw new Error('Incorrect password');
+    const user={id:u.id,email:u.email,name:u.name,is_barista:true};
+    LS.set('ba_session',{user,email});
+    return {user};
+  },
+  async signOut(){LS.del('ba_session');},
+  async getSession(){const s=LS.get('ba_session');return s?{user:s.user}:null;},
+};
+
+const DB={
+  auth:USE_SUPABASE&&supa?{
+    async signUp(e,p,n){const {data,error}=await supa.auth.signUp({email:e,password:p,options:{data:{name:n,is_barista:true}}});if(error)throw error;return data;},
+    async signIn(e,p){const {data,error}=await supa.auth.signInWithPassword({email:e,password:p});if(error)throw error;return data;},
+    async signOut(){await supa.auth.signOut();},
+    async getSession(){try{const {data}=await supa.auth.getSession();return data.session;}catch(e){return null;}},
+  }:localAuth,
+
+  async getProfile(id){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('profiles').select('*').eq('id',id).single();return data;}
+    return LS.get('profile_'+id,null);
+  },
+  async updateProfile(id,u){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('profiles').update({...u,updated_at:new Date()}).eq('id',id).select().single();return data;}
+    const ex=LS.get('profile_'+id,{});const up={...ex,...u,id};LS.set('profile_'+id,up);return up;
+  },
+
+  // Feed — barista can see and post to the same shared feed
+  async getFeed(limit=30){
+    if(USE_SUPABASE&&supa){
+      const {data}=await supa.from('feed_posts').select('*, profiles(id,name,handle,avatar_url,current_drinking,tier,is_barista)').order('created_at',{ascending:false}).limit(limit);
+      return (data||[]).map(p=>({...p,userId:p.user_id,upvotes:p.upvotes_count||0,liked:false,text:p.text_content,photos:p.photos||[],flavors:p.flavors||[],time:new Date(p.created_at).toLocaleDateString('en-ZA',{day:'numeric',month:'short'})}));
+    }
+    const posts=LS.get('feed',[]);
+    return [...posts].slice(0,limit).map(p=>({...p,userId:p.user_id||p.userId}));
+  },
+  async createPost(post){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('feed_posts').insert(post).select().single();return data;}
+    const posts=LS.get('feed',[]);const np={...post,id:'post_'+Date.now(),created_at:new Date().toISOString(),upvotes_count:0};LS.set('feed',[np,...posts].slice(0,100));return np;
+  },
+  async getUserUpvotes(uid){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('post_upvotes').select('post_id').eq('user_id',uid);return (data||[]).map(r=>r.post_id);}
+    return LS.get('upvotes_'+uid,[]);
+  },
+  async toggleUpvote(uid,pid,isLiked){
+    if(USE_SUPABASE&&supa){if(isLiked){await supa.from('post_upvotes').delete().eq('user_id',uid).eq('post_id',pid);}else{await supa.from('post_upvotes').insert({user_id:uid,post_id:pid});}}
+    else{const up=LS.get('upvotes_'+uid,[]);LS.set('upvotes_'+uid,isLiked?up.filter(x=>x!==pid):[...up,pid]);}
+  },
+
+  // Customer profiles (read from shared profiles table)
+  async getAllCustomers(){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('profiles').select('*').eq('is_barista',false).order('points',{ascending:false}).limit(100);return data||[];}
+    return Object.keys(localStorage).filter(k=>k.startsWith('brewly_profile_')).map(k=>{try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}).filter(Boolean);
+  },
+  async getCustomerById(id){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('profiles').select('*').eq('id',id).single();return data;}
+    return LS.get('profile_'+id,null);
+  },
+  async getCustomerLogs(customerId){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('coffee_logs').select('*').eq('user_id',customerId).order('created_at',{ascending:false}).limit(10);return data||[];}
+    return LS.get('logs_'+customerId,[]);
+  },
+  async getLiveNow(){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('profiles').select('id,name,handle,avatar_url,tier,current_drinking').not('current_drinking','is',null).limit(20);return data||[];}
+    const keys=Object.keys(localStorage).filter(k=>k.startsWith('brewly_profile_'));
+    return keys.map(k=>{try{const p=JSON.parse(localStorage.getItem(k));return p?.current_drinking?p:null;}catch(e){return null;}}).filter(Boolean);
+  },
+
+  // Barista inventory
+  async getInventory(baristaId){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('barista_inventory').select('*').eq('barista_id',baristaId).order('updated_at',{ascending:false});return data||[];}
+    return LSB.get('inventory_'+baristaId,[]);
+  },
+  async addInventoryItem(item){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('barista_inventory').insert(item).select().single();return data;}
+    const inv=LSB.get('inventory_'+item.barista_id,[]);const ni={...item,id:'inv_'+Date.now()};LSB.set('inventory_'+item.barista_id,[...inv,ni]);return ni;
+  },
+  async updateInventoryStock(id,stock,baristaId){
+    if(USE_SUPABASE&&supa){await supa.from('barista_inventory').update({stock,updated_at:new Date()}).eq('id',id);return;}
+    const inv=LSB.get('inventory_'+baristaId,[]);LSB.set('inventory_'+baristaId,inv.map(x=>x.id===id?{...x,stock}:x));
+  },
+  async deleteInventoryItem(id,baristaId){
+    if(USE_SUPABASE&&supa){await supa.from('barista_inventory').delete().eq('id',id);return;}
+    const inv=LSB.get('inventory_'+baristaId,[]);LSB.set('inventory_'+baristaId,inv.filter(x=>x.id!==id));
+  },
+
+  // Kudos — barista receives them
+  async getMyKudos(baristaId){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('kudos').select('*, profiles(name,avatar_url)').eq('barista_id',baristaId).order('created_at',{ascending:false}).limit(50);return data||[];}
+    return LSB.get('kudos_'+baristaId,[]);
+  },
+
+  // Barista profile
+  async getBaristaProfile(userId){
+    if(USE_SUPABASE&&supa){const {data}=await supa.from('baristas').select('*').eq('user_id',userId).single();return data;}
+    return LSB.get('barista_profile_'+userId,null);
+  },
+  async saveBaristaProfile(userId,profile){
+    if(USE_SUPABASE&&supa){
+      const {data}=await supa.from('baristas').upsert({...profile,user_id:userId}).select().single();return data;
+    }
+    const saved={...profile,user_id:userId,id:'ba_'+userId};LSB.set('barista_profile_'+userId,saved);return saved;
+  },
+
+  // Orders logged by customers — barista sees what people order
+  async getRecentOrders(cafeId,limit=50){
+    if(USE_SUPABASE&&supa){
+      const {data}=await supa.from('coffee_logs').select('*, profiles(name,avatar_url,tier)').order('created_at',{ascending:false}).limit(limit);
+      return data||[];
+    }
+    // Mock from localStorage
+    const allKeys=Object.keys(localStorage).filter(k=>k.startsWith('brewly_logs_'));
+    const allLogs=allKeys.flatMap(k=>{try{return JSON.parse(localStorage.getItem(k))||[];}catch(e){return [];}});
+    return allLogs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,limit);
+  },
+
+  subscribeToFeed(onNew){
+    if(!USE_SUPABASE||!supa)return null;
+    return supa.channel('ba-feed').on('postgres_changes',{event:'INSERT',schema:'public',table:'feed_posts'},p=>{
+      const post={...p.new,userId:p.new.user_id,upvotes:0,liked:false,text:p.new.text_content,photos:p.new.photos||[],flavors:p.new.flavors||[],time:'Just now'};
+      onNew(post);
+    }).subscribe();
+  },
+  subscribeToCustomers(onUpdate){
+    if(!USE_SUPABASE||!supa)return null;
+    return supa.channel('ba-customers').on('postgres_changes',{event:'UPDATE',schema:'public',table:'profiles'},p=>onUpdate(p.new)).subscribe();
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SHARED UTILS — identical to main app
+// ═══════════════════════════════════════════════════════════════
+function matchScore(up,bean){
+  const w={acidity:.25,fruitiness:.2,sweetness:.2,body:.15,intensity:.1,aroma:.05,finish:.05};
+  let t=0,wt=0;
+  Object.entries(w).forEach(([k,v])=>{const u=up[k],b=bean[k];if(u!=null&&b!=null){t+=v*(1-Math.abs(u-b)/10);wt+=v;}});
+  return wt>0?Math.round((t/wt)*100):70;
+}
+
+function MR({pct,size=46}){const d=(pct/100)*360;return <div className="mr" style={{width:size,height:size,background:`conic-gradient(var(--ba4) ${d}deg,rgba(30,15,7,.1) ${d}deg)`}}><div className="mr-in" style={{width:size-14,height:size-14,fontSize:10}}>{pct}%</div></div>;}
+
+function Stars({val,onChange,size=26}){const[h,sh]=useState(0);return <div style={{display:'flex',gap:4}}>{[1,2,3,4,5].map(n=><span key={n} className={`star${n<=(h||val)?' lit':''}`} style={{fontSize:size}} onClick={()=>onChange&&onChange(n)} onMouseEnter={()=>onChange&&sh(n)} onMouseLeave={()=>sh(0)}>★</span>)}</div>;}
+
+function RadarChart({data,size=150}){
+  const cx=size/2,cy=size/2,r=size*.37;
+  const axes=['Acidity','Fruitiness','Sweetness','Body','Aroma','Finish'];
+  const vals=axes.map(a=>data[a.toLowerCase()]||0);
+  const pt=(f,i)=>{const a=(i/axes.length)*2*Math.PI-Math.PI/2;return[cx+Math.cos(a)*f,cy+Math.sin(a)*f];};
+  const poly=v=>axes.map((_,i)=>pt((v[i]/10)*r,i).join(',')).join(' ');
+  return <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+    {[.25,.5,.75,1].map((f,i)=><polygon key={i} points={axes.map((_,j)=>pt(f*r,j).join(',')).join(' ')} fill="none" stroke="rgba(30,15,7,.07)" strokeWidth=".8"/>)}
+    {axes.map((_,i)=>{const[x,y]=pt(r,i);return <line key={i} x1={cx} y1={cy} x2={x.toFixed(1)} y2={y.toFixed(1)} stroke="rgba(30,15,7,.07)" strokeWidth=".8"/>;}).flat()}
+    <polygon points={poly(vals)} fill="rgba(61,155,72,.15)" stroke="var(--ba4)" strokeWidth="2"/>
+    {vals.map((v,i)=>{const[x,y]=pt((v/10)*r,i);return <circle key={i} cx={x.toFixed(1)} cy={y.toFixed(1)} r="4" fill="var(--ba4)"/>;}).flat()}
+    {axes.map((l,i)=>{const[x,y]=pt(r+17,i);return <text key={i} x={x.toFixed(1)} y={y.toFixed(1)} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="var(--ink3)" fontFamily="Inter,sans-serif">{l}</text>;}).flat()}
+  </svg>;
+}
+
+function Toast({msg,onDone}){useEffect(()=>{const t=setTimeout(onDone,2800);return()=>clearTimeout(t)},[]);return <div className="toast">{msg}</div>;}
+
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH SCREEN
+// ═══════════════════════════════════════════════════════════════
+function AuthScreen({onAuth,toast}){
+  const[mode,sMode]=useState('signin');
+  const[email,sEmail]=useState('');
+  const[pw,sPw]=useState('');
+  const[name,sName]=useState('');
+  const[cafe,sCafe]=useState('');
+  const[loading,sLoading]=useState(false);
+  const[err,sErr]=useState('');
+
+  const submit=async()=>{
+    if(!email||!pw){sErr('Email and password required');return;}
+    sLoading(true);sErr('');
+    try{
+      if(mode==='signup'){
+        if(!name)throw new Error('Name required');
+        if(!cafe)throw new Error('Café / roastery required');
+        const data=await DB.auth.signUp(email,pw,name);
+        const uid=data?.user?.id||'ba_user_'+Date.now();
+        const profile=await DB.updateProfile(uid,{id:uid,name,city:'Johannesburg',tier:'Coffee Curious',points:0,logs_count:0,cafes_count:0,is_barista:true,acidity:5,fruitiness:5,sweetness:5,body:5,intensity:5,aroma:5,finish:5,likes:[],avoids:[]});
+        await DB.saveBaristaProfile(uid,{cafe_name:cafe,specialties:[],years_exp:0,bio:'',kudos_count:0,avg_rating:0});
+        onAuth({id:uid,email,name},{...profile,cafe_name:cafe});
+      } else {
+        const data=await DB.auth.signIn(email,pw);
+        const uid=data?.user?.id;
+        const [profile,baristaProfile]=await Promise.all([DB.getProfile(uid),DB.getBaristaProfile(uid)]);
+        onAuth(data.user,{...profile,...baristaProfile});
+      }
+    }catch(e){sErr(e.message||'Something went wrong');}
+    sLoading(false);
+  };
+
+  return <div style={{minHeight:'100%',background:'var(--ba)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 28px',color:'#fff'}}>
+    <div style={{marginBottom:28,textAlign:'center'}}>
+      <div className="serif" style={{fontSize:36,letterSpacing:'-.5px',marginBottom:4}}>
+        Brew<em style={{fontStyle:'italic',color:'var(--ba5)'}}>ly</em>
+      </div>
+      <div style={{fontSize:12,color:'rgba(93,196,102,.5)',fontWeight:600,letterSpacing:1.5,textTransform:'uppercase'}}>Barista Portal</div>
+    </div>
+
+    {!USE_SUPABASE&&<div style={{background:'rgba(61,155,72,.1)',border:'.5px solid rgba(61,155,72,.3)',borderRadius:12,padding:'11px 13px',marginBottom:20,width:'100%',fontSize:11,color:'rgba(93,196,102,.8)',lineHeight:1.65}}>
+      📦 Running on local storage — data saves in this browser.<br/>
+      <strong>Note:</strong> accounts you create here are shared with the main Brewly app on this device.
+    </div>}
+
+    <div style={{width:'100%'}}>
+      <div style={{display:'flex',background:'rgba(255,255,255,.06)',borderRadius:10,padding:3,marginBottom:20}}>
+        {[['signin','Sign in'],['signup','Create barista account']].map(([m,lb])=>(
+          <button key={m} onClick={()=>{sMode(m);sErr('');}} style={{flex:1,padding:'9px',borderRadius:8,border:'none',background:mode===m?'rgba(61,155,72,.9)':'transparent',color:mode===m?'#fff':'rgba(255,255,255,.45)',fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:600,cursor:'pointer'}}>{lb}</button>
+        ))}
+      </div>
+
+      {mode==='signup'&&<>
+        <div style={{marginBottom:11}}>
+          <label style={{fontSize:10,color:'rgba(93,196,102,.6)',display:'block',marginBottom:5,letterSpacing:1,textTransform:'uppercase'}}>Your name</label>
+          <input value={name} onChange={e=>sName(e.target.value)} placeholder="e.g. James Osei" style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'.5px solid rgba(93,196,102,.25)',background:'rgba(255,255,255,.06)',color:'#fff',fontSize:14,fontFamily:'Inter,sans-serif',outline:'none'}}/>
+        </div>
+        <div style={{marginBottom:11}}>
+          <label style={{fontSize:10,color:'rgba(93,196,102,.6)',display:'block',marginBottom:5,letterSpacing:1,textTransform:'uppercase'}}>Your café / roastery</label>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:7}}>
+            {ROASTERIES.slice(0,5).map(r=><button key={r.id} onClick={()=>sCafe(r.name)} style={{padding:'5px 10px',borderRadius:999,border:`.5px solid ${cafe===r.name?'var(--ba4)':'rgba(93,196,102,.2)'}`,background:cafe===r.name?'rgba(61,155,72,.3)':'rgba(255,255,255,.05)',color:cafe===r.name?'var(--ba5)':'rgba(255,255,255,.5)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{r.emoji} {r.name.split(' ')[0]}</button>)}
+          </div>
+          <input value={cafe} onChange={e=>sCafe(e.target.value)} placeholder="Or type café name" style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'.5px solid rgba(93,196,102,.25)',background:'rgba(255,255,255,.06)',color:'#fff',fontSize:14,fontFamily:'Inter,sans-serif',outline:'none'}}/>
+        </div>
+      </>}
+
+      <div style={{marginBottom:11}}>
+        <label style={{fontSize:10,color:'rgba(93,196,102,.6)',display:'block',marginBottom:5,letterSpacing:1,textTransform:'uppercase'}}>Email</label>
+        <input type="email" value={email} onChange={e=>sEmail(e.target.value)} placeholder="you@cafe.com" style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'.5px solid rgba(93,196,102,.25)',background:'rgba(255,255,255,.06)',color:'#fff',fontSize:14,fontFamily:'Inter,sans-serif',outline:'none'}}/>
+      </div>
+      <div style={{marginBottom:20}}>
+        <label style={{fontSize:10,color:'rgba(93,196,102,.6)',display:'block',marginBottom:5,letterSpacing:1,textTransform:'uppercase'}}>Password</label>
+        <input type="password" value={pw} onChange={e=>sPw(e.target.value)} placeholder="min. 6 characters" style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'.5px solid rgba(93,196,102,.25)',background:'rgba(255,255,255,.06)',color:'#fff',fontSize:14,fontFamily:'Inter,sans-serif',outline:'none'}} onKeyDown={e=>e.key==='Enter'&&submit()}/>
+      </div>
+      {err&&<div style={{background:'rgba(168,56,32,.3)',borderRadius:9,padding:'10px 13px',marginBottom:14,fontSize:12,color:'#FCA5A5',borderLeft:'2px solid var(--rst2)',lineHeight:1.5}}>{err}</div>}
+      <button onClick={submit} disabled={loading} style={{width:'100%',padding:'14px',borderRadius:10,background:'var(--ba3)',color:'#fff',border:'none',fontFamily:'Inter,sans-serif',fontSize:14,fontWeight:600,cursor:loading?'default':'pointer',opacity:loading?.7:1}}>
+        {loading?'Please wait…':mode==='signin'?'Sign in →':'Create barista account →'}
+      </button>
+    </div>
+  </div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCAN QR — reads customer taste cards from main app
+// ═══════════════════════════════════════════════════════════════
+function ScanScreen({barista,inventory,toast}){
+  const[scanning,sScan]=useState(false);
+  const[scanned,setScanned]=useState(null);
+  const[savedCustomers,setSaved]=useState([]);
+
+  useEffect(()=>{
+    setSaved(LSB.get('saved_customers_'+(barista?.id||''),[]));
+  },[]);
+
+  // Simulates reading a customer QR — in production this uses camera API
+  const simulateScan=()=>{
+    sScan(true);
+    setTimeout(()=>{
+      // Pull from shared localStorage (same key as main app)
+      const allKeys=Object.keys(localStorage).filter(k=>k.startsWith('brewly_profile_'));
+      let found=null;
+      for(const k of allKeys){
+        try{const p=JSON.parse(localStorage.getItem(k));if(p&&!p.is_barista){found=p;break;}}catch(e){}
+      }
+      const profile=found||{
+        id:'mock_'+Date.now(),name:'Alex (demo)',tier:'Flavour Explorer',points:340,
+        acidity:7.8,fruitiness:8.5,sweetness:6.5,body:4.2,intensity:4.8,aroma:7.5,finish:7,
+        likes:['Bright acidity','Fruity','African origins'],avoids:['Heavy bitterness'],
+        current_drinking:null,
+      };
+      setScanned(profile);
+      sScan(false);
+    },2200);
+  };
+
+  const saveCustomer=()=>{
+    if(!scanned)return;
+    const existing=LSB.get('saved_customers_'+(barista?.id||''),[]);
+    if(!existing.find(c=>c.id===scanned.id)){
+      const updated=[scanned,...existing].slice(0,50);
+      LSB.set('saved_customers_'+(barista?.id||''),updated);
+      setSaved(updated);
+    }
+    toast('Customer profile saved ✓');
+  };
+
+  const rankBeans=(profile)=>[...inventory].sort((a,b)=>{
+    const scoreA=matchScore({acidity:profile.acidity||5,fruitiness:profile.fruitiness||5,sweetness:profile.sweetness||5,body:profile.body||5,intensity:profile.intensity||5,aroma:profile.aroma||5,finish:profile.finish||5},a);
+    const scoreB=matchScore({acidity:profile.acidity||5,fruitiness:profile.fruitiness||5,sweetness:profile.sweetness||5,body:profile.body||5,intensity:profile.intensity||5,aroma:profile.aroma||5,finish:profile.finish||5},b);
+    return scoreB-scoreA;
+  });
+
+  const profileForMatch=(p)=>({acidity:p.acidity||5,fruitiness:p.fruitiness||5,sweetness:p.sweetness||5,body:p.body||5,intensity:p.intensity||5,aroma:p.aroma||5,finish:p.finish||5});
+
+  return <div className="fi">
+    <div style={{background:'linear-gradient(160deg,var(--ba) 0%,var(--ba2) 100%)',padding:'22px 18px 24px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+        <div><div className="serif" style={{fontSize:22,color:'#fff'}}>Scan Customer</div>
+        <div style={{fontSize:11,color:'rgba(93,196,102,.6)'}}>Read taste profiles from the Brewly app</div></div>
+        <div className="live-tag"><div className="live-dot"/>Live</div>
+      </div>
+    </div>
+
+    {/* QR Scanner */}
+    {!scanned&&<div style={{padding:'24px 18px',display:'flex',flexDirection:'column',alignItems:'center',gap:20}}>
+      <div className="qr-frame">
+        <div className="qr-corner tl"/><div className="qr-corner tr"/>
+        <div className="qr-corner bl"/><div className="qr-corner br"/>
+        {scanning&&<div className="scan-line"/>}
+        {!scanning&&<div style={{fontSize:40,opacity:.3}}>📷</div>}
+        {scanning&&<div style={{position:'absolute',bottom:10,fontSize:11,color:'var(--ba4)',fontWeight:600}}>Reading…</div>}
+      </div>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:13,color:'var(--cr3)',marginBottom:6,lineHeight:1.6}}>Ask the customer to open Brewly → Profile → tap their Brewly Card → Show to Barista</div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,.3)'}}>Their taste profile, history & preferences load instantly</div>
+      </div>
+      <button onClick={simulateScan} disabled={scanning} style={{background:'var(--ba3)',color:'#fff',border:'none',borderRadius:12,padding:'13px 28px',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:scanning?.6:1}}>
+        {scanning?<><span className="spin">⟳</span> Scanning…</>:'📷 Scan QR Code'}
+      </button>
+      {/* Saved customers quick access */}
+      {savedCustomers.length>0&&<>
+        <div style={{width:'100%',height:1,background:'rgba(255,255,255,.08)'}}/>
+        <div style={{width:'100%'}}>
+          <div className="lbl" style={{color:'rgba(93,196,102,.6)',marginBottom:8}}>Recent customers</div>
+          {savedCustomers.slice(0,3).map(c=>(
+            <div key={c.id} onClick={()=>setScanned(c)} style={{background:'rgba(255,255,255,.05)',borderRadius:11,padding:'10px 13px',marginBottom:7,cursor:'pointer',border:'.5px solid rgba(93,196,102,.15)',display:'flex',alignItems:'center',gap:10}}>
+              <div style={{width:34,height:34,borderRadius:'50%',background:'rgba(61,155,72,.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>
+                {c.avatar_url||'☕'}
+              </div>
+              <div style={{flex:1}}><div style={{fontSize:13,color:'#fff',fontWeight:500}}>{c.name}</div><div style={{fontSize:10,color:'rgba(255,255,255,.4)'}}>{c.tier} · {c.points} pts</div></div>
+              <div style={{fontSize:11,color:'var(--ba4)',fontWeight:600}}>→</div>
+            </div>
+          ))}
+        </div>
+      </>}
+    </div>}
+
+    {/* Scanned profile */}
+    {scanned&&<div style={{padding:'14px 16px'}}>
+      {/* Profile card */}
+      <div style={{background:'var(--sge3)',borderRadius:13,padding:'13px 15px',marginBottom:13,borderLeft:'2px solid var(--sge)'}}>
+        <div style={{fontSize:9,color:'var(--sge)',fontWeight:700,letterSpacing:.8,textTransform:'uppercase',marginBottom:5}}>✓ Profile loaded from Brewly app</div>
+        <div style={{display:'flex',alignItems:'center',gap:11,marginBottom:9}}>
+          <div style={{width:42,height:42,borderRadius:'50%',background:'var(--cr3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{scanned.avatar_url||'☕'}</div>
+          <div><div className="serif" style={{fontSize:18,color:'var(--ink)',marginBottom:1}}>{scanned.name}</div>
+          <div style={{fontSize:11,color:'var(--ink3)'}}>✦ {scanned.tier} · {scanned.points||0} pts</div></div>
+        </div>
+        {/* Radar */}
+        <div style={{display:'flex',alignItems:'center',gap:12,background:'#fff',borderRadius:10,padding:'10px 12px',marginBottom:9}}>
+          <RadarChart data={{acidity:scanned.acidity||5,fruitiness:scanned.fruitiness||5,sweetness:scanned.sweetness||5,body:scanned.body||5,aroma:scanned.aroma||5,finish:scanned.finish||5}} size={120}/>
+          <div style={{flex:1}}>
+            {[['Acidity',scanned.acidity||5,'#6D8C6A'],['Fruitiness',scanned.fruitiness||5,'#D4614A'],['Body',scanned.body||5,'#8B6355'],['Sweetness',scanned.sweetness||5,'#C8974A']].map(([l,v,c])=>(
+              <div key={l} style={{marginBottom:6}}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--ink3)',marginBottom:2}}><span>{l}</span><span style={{fontWeight:600,color:'var(--ink)'}}>{(v||0).toFixed(1)}</span></div>
+                <div style={{height:3,background:'var(--b)',borderRadius:2,overflow:'hidden'}}><div style={{height:'100%',width:`${(v||0)*10}%`,background:c,borderRadius:2}}/></div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Preferences */}
+        <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+          {(scanned.likes||[]).map(p=><span key={p} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:0,marginRight:4,marginBottom:3}}>✓ {p}</span>)}
+          {(scanned.avoids||[]).map(a=><span key={a} className="chip rst" style={{fontSize:10,padding:'2px 7px',margin:0,marginRight:4,marginBottom:3}}>✗ {a}</span>)}
+        </div>
+      </div>
+
+      {/* Ranked recommendations */}
+      <div className="lbl" style={{marginBottom:8}}>Best matches from your stock</div>
+      {inventory.length===0?<div style={{background:'var(--rst3)',borderRadius:11,padding:'11px 14px',borderLeft:'2px solid var(--rst2)',fontSize:12,color:'var(--ink)',marginBottom:12}}>
+        No beans in stock. Add beans in the Inventory tab first.
+      </div>:rankBeans(scanned).slice(0,4).map((bean,i)=>(
+        <div key={bean.id} style={{background:'#fff',borderRadius:13,border:`.5px solid ${i===0?'var(--ba4)':'var(--b)'}`,padding:'12px 14px',marginBottom:9,display:'flex',alignItems:'center',gap:11}}>
+          <div style={{flex:1}}>
+            {i===0&&<div style={{fontSize:9,color:'var(--ba4)',fontWeight:700,letterSpacing:.8,textTransform:'uppercase',marginBottom:3}}>⭐ Top pick</div>}
+            <div className="serif" style={{fontSize:14,color:'var(--ink)',marginBottom:2}}>{bean.name}</div>
+            <div style={{fontSize:10,color:'var(--ink3)',marginBottom:5}}>{bean.roastery} · {bean.origin} · {bean.roast}</div>
+            <div>{(bean.flavors||[]).slice(0,3).map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 6px',margin:'0 3px 0 0'}}>{f}</span>)}</div>
+            {bean.stock==='Low'&&<span style={{fontSize:9,background:'var(--rst3)',color:'var(--rst)',padding:'2px 7px',borderRadius:999,marginTop:4,display:'inline-block'}}>⚠ Low stock</span>}
+          </div>
+          <MR pct={matchScore(profileForMatch(scanned),bean)} size={44}/>
+        </div>
+      ))}
+
+      <div style={{display:'flex',gap:8,marginTop:4}}>
+        <button onClick={saveCustomer} className="btn" style={{flex:1,background:'var(--sge)',color:'#fff',padding:'11px'}}>💾 Save customer</button>
+        <button onClick={()=>setScanned(null)} className="btn btn-out" style={{flex:1,padding:'11px',fontSize:13}}>← Scan again</button>
+      </div>
+      <div style={{height:20}}/>
+    </div>}
+  </div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INVENTORY SCREEN
+// ═══════════════════════════════════════════════════════════════
+function InventoryScreen({barista,inventory,setInventory,toast}){
+  const[addOpen,sAdd]=useState(false);
+  const[newBean,sNB]=useState({name:'',roastery:'',origin:'',process:'Washed',roast:'Light',tasting:'',stock:'High'});
+
+  const addBean=async()=>{
+    if(!newBean.name)return;
+    const dbMatch=ALL_BEANS.find(b=>b.name.toLowerCase().includes(newBean.name.toLowerCase().split(' ')[0])||newBean.name.toLowerCase().includes(b.name.toLowerCase().split(' ')[0]));
+    const item={barista_id:barista.id,name:dbMatch?.name||newBean.name,roastery:dbMatch?.roasteryName||newBean.roastery||'Unknown',origin:dbMatch?.origin||newBean.origin,process:dbMatch?.process||newBean.process,roast:dbMatch?.roast||newBean.roast,flavors:dbMatch?.flavors||(newBean.tasting?newBean.tasting.split(',').map(t=>t.trim()):[]),stock:newBean.stock,acidity:dbMatch?.acidity||5,fruitiness:dbMatch?.fruitiness||5,body:dbMatch?.body||5,sweetness:dbMatch?.sweetness||5,intensity:dbMatch?.intensity||5,aroma:dbMatch?.aroma||5,finish:dbMatch?.finish||5,auto_loaded:!!dbMatch};
+    try{
+      const saved=await DB.addInventoryItem(item);
+      setInventory(inv=>[...inv,saved||{...item,id:'inv_'+Date.now()}]);
+      sNB({name:'',roastery:'',origin:'',process:'Washed',roast:'Light',tasting:'',stock:'High'});
+      sAdd(false);
+      toast(dbMatch?`${item.name} added — flavour profile auto-loaded ✓`:'Bean added ✓');
+    }catch(e){toast('Failed to add bean: '+e.message);}
+  };
+
+  const updateStock=async(id,stock)=>{
+    setInventory(inv=>inv.map(x=>x.id===id?{...x,stock}:x));
+    await DB.updateInventoryStock(id,stock,barista.id).catch(()=>{});
+    toast('Stock updated ✓');
+  };
+
+  const deleteBean=async(id)=>{
+    setInventory(inv=>inv.filter(x=>x.id!==id));
+    await DB.deleteInventoryItem(id,barista.id).catch(()=>{});
+    toast('Bean removed');
+  };
+
+  const lowStock=inventory.filter(b=>b.stock==='Low'||b.stock==='Out');
+
+  return <div className="fi">
+    <div style={{background:'linear-gradient(160deg,var(--ba) 0%,var(--ba2) 100%)',padding:'22px 18px 24px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div><div className="serif" style={{fontSize:22}}>Inventory</div>
+        <div style={{fontSize:11,color:'rgba(93,196,102,.6)'}}>{inventory.length} beans · {lowStock.length} low/out</div></div>
+        <button onClick={()=>sAdd(!addOpen)} style={{background:'var(--ba3)',color:'#fff',border:'none',borderRadius:9,padding:'8px 14px',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Add bean</button>
+      </div>
+      {lowStock.length>0&&<div style={{background:'rgba(168,56,32,.25)',borderRadius:10,padding:'8px 12px',marginTop:10,border:'.5px solid rgba(168,56,32,.4)',display:'flex',alignItems:'center',gap:8}}>
+        <span style={{fontSize:14}}>⚠️</span>
+        <span style={{fontSize:11,color:'#FCA5A5'}}>{lowStock.map(b=>b.name.split(' ')[0]).join(', ')} — low or out of stock</span>
+      </div>}
+    </div>
+
+    <div style={{padding:'0 16px'}}>
+      {addOpen&&<div style={{background:'var(--cr2)',borderRadius:13,padding:14,margin:'12px 0 4px',border:'.5px solid var(--b)'}}>
+        <div className="serif" style={{fontSize:15,color:'var(--ink)',marginBottom:10}}>Add bean to stock</div>
+        <div style={{background:'var(--sge3)',borderRadius:9,padding:'8px 11px',marginBottom:11,fontSize:11,color:'var(--sge)',lineHeight:1.5,borderLeft:'2px solid var(--sge)'}}>
+          ✦ Type a known bean name and the full flavour profile auto-loads, instantly improving customer match accuracy.
+        </div>
+        <div style={{marginBottom:9}}><label className="lbl" style={{display:'block',marginBottom:4}}>Bean name</label>
+          <input className="inp" placeholder='"Lalesa Black Honey" or "Ethiopia Yirgacheffe"' value={newBean.name} onChange={e=>sNB(b=>({...b,name:e.target.value}))} style={{fontSize:13}}/>
+          {newBean.name.length>2&&ALL_BEANS.find(b=>b.name.toLowerCase().includes(newBean.name.toLowerCase().split(' ')[0]))&&
+            <div style={{marginTop:4,fontSize:11,color:'var(--sge)',fontWeight:500}}>✓ Found in Brewly database — will auto-load</div>}
+        </div>
+        <div style={{marginBottom:9}}><label className="lbl" style={{display:'block',marginBottom:4}}>Roastery</label>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:6}}>
+            {ROASTERIES.slice(0,5).map(r=><button key={r.id} onClick={()=>sNB(b=>({...b,roastery:r.name}))} style={{padding:'5px 10px',borderRadius:999,border:`.5px solid ${newBean.roastery===r.name?'var(--ink)':'var(--b2)'}`,background:newBean.roastery===r.name?'var(--ink)':'var(--cr2)',color:newBean.roastery===r.name?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{r.emoji} {r.name.split(' ')[0]}</button>)}
+          </div>
+          <input className="inp" placeholder="Or type roastery name" value={newBean.roastery} onChange={e=>sNB(b=>({...b,roastery:e.target.value}))} style={{fontSize:13}}/>
+        </div>
+        <div style={{display:'flex',gap:7,marginBottom:9}}>
+          <div style={{flex:1}}><label className="lbl" style={{display:'block',marginBottom:4}}>Process</label>
+            <select className="inp" style={{appearance:'none',cursor:'pointer'}} value={newBean.process} onChange={e=>sNB(b=>({...b,process:e.target.value}))}>
+              {['Washed','Natural','Honey','Anaerobic','Vacuum Fermented','Mixed'].map(p=><option key={p}>{p}</option>)}
+            </select>
+          </div>
+          <div style={{flex:1}}><label className="lbl" style={{display:'block',marginBottom:4}}>Roast</label>
+            <select className="inp" style={{appearance:'none',cursor:'pointer'}} value={newBean.roast} onChange={e=>sNB(b=>({...b,roast:e.target.value}))}>
+              {['Light','Light-Medium','Medium','Medium-Dark','Dark'].map(r=><option key={r}>{r}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{marginBottom:9}}><label className="lbl" style={{display:'block',marginBottom:4}}>Tasting notes (comma separated)</label>
+          <input className="inp" placeholder="e.g. Guava, Jasmine, Dark chocolate" value={newBean.tasting} onChange={e=>sNB(b=>({...b,tasting:e.target.value}))} style={{fontSize:13}}/>
+        </div>
+        <div style={{marginBottom:11}}><label className="lbl" style={{display:'block',marginBottom:4}}>Stock level</label>
+          <div style={{display:'flex',gap:6}}>{['High','Medium','Low','Out'].map(s=><button key={s} onClick={()=>sNB(b=>({...b,stock:s}))} style={{flex:1,padding:'8px 4px',borderRadius:8,border:`.5px solid ${newBean.stock===s?'var(--ink)':'var(--b2)'}`,background:newBean.stock===s?'var(--ink)':'var(--cr2)',color:newBean.stock===s?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{s}</button>)}</div>
+        </div>
+        <div style={{display:'flex',gap:7}}><button className="btn btn-grn" style={{flex:2}} onClick={addBean}>Save Bean</button><button className="btn btn-out" style={{flex:1,fontSize:13}} onClick={()=>sAdd(false)}>Cancel</button></div>
+      </div>}
+
+      {inventory.length===0&&!addOpen&&<div style={{textAlign:'center',padding:'40px 0'}}>
+        <div style={{fontSize:40,marginBottom:10}}>🫘</div>
+        <div className="serif" style={{fontSize:17,color:'var(--ink)',marginBottom:6}}>No beans in stock yet</div>
+        <div style={{fontSize:12,color:'var(--ink3)'}}>Add your first bean above to start matching customers from the main app.</div>
+      </div>}
+
+      {inventory.length>0&&<div style={{paddingTop:8,paddingBottom:20}}>
+        {inventory.map((b,i,arr)=>(
+          <div key={b.id} style={{display:'flex',alignItems:'flex-start',gap:11,padding:'12px 0',borderBottom:i<arr.length-1?'.5px solid var(--b)':'none'}}>
+            <div className="sdot" style={{background:b.stock==='High'?'var(--sge)':b.stock==='Medium'?'var(--gld)':b.stock==='Low'?'var(--rst2)':'#999',marginTop:5}}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
+                <span className="serif" style={{fontSize:14,color:'var(--ink)'}}>{b.name}</span>
+                {b.auto_loaded&&<span style={{fontSize:9,color:'var(--sge)',fontWeight:600}}>✦ auto</span>}
+              </div>
+              <div style={{fontSize:10,color:'var(--ink3)',marginBottom:4}}>{b.roastery} · {b.origin||'—'} · {b.process} · {b.roast}</div>
+              {b.flavors?.length>0&&<div style={{marginBottom:3}}>{b.flavors.slice(0,4).map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 6px',margin:'0 3px 3px 0'}}>{f}</span>)}</div>}
+              <div style={{display:'flex',alignItems:'center',gap:6,marginTop:4}}>
+                <span style={{fontSize:10,color:'var(--ink3)'}}>Acidity {b.acidity||'?'} · Fruitiness {b.fruitiness||'?'}</span>
+              </div>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:6,flexShrink:0,alignItems:'flex-end'}}>
+              <select value={b.stock} onChange={e=>updateStock(b.id,e.target.value)} style={{fontSize:11,border:'.5px solid var(--b2)',borderRadius:7,padding:'4px 7px',background:'var(--cr2)',color:'var(--ink)',appearance:'none',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                {['High','Medium','Low','Out'].map(s=><option key={s}>{s}</option>)}
+              </select>
+              <button onClick={()=>deleteBean(b.id)} style={{fontSize:10,color:'var(--ink3)',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove</button>
+            </div>
+          </div>
+        ))}
+      </div>}
+    </div>
+  </div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOMERS SCREEN — live view of Brewly app customers
+// ═══════════════════════════════════════════════════════════════
+function CustomersScreen({barista,inventory,toast}){
+  const[customers,setCustomers]=useState([]);
+  const[liveNow,setLiveNow]=useState([]);
+  const[selected,setSelected]=useState(null);
+  const[tab,sTab]=useState('live');
+  const[loading,sLoading]=useState(true);
+
+  useEffect(()=>{
+    (async()=>{
+      const [all,live]=await Promise.all([DB.getAllCustomers().catch(()=>[]),DB.getLiveNow().catch(()=>[])]);
+      setCustomers(all);setLiveNow(live);sLoading(false);
+    })();
+    const sub=DB.subscribeToCustomers&&DB.subscribeToCustomers(updated=>{
+      setCustomers(prev=>prev.map(c=>c.id===updated.id?{...c,...updated}:c));
+      if(updated.current_drinking)setLiveNow(prev=>{const filtered=prev.filter(c=>c.id!==updated.id);return[updated,...filtered];});
+    });
+    return()=>{if(sub&&sub.unsubscribe)sub.unsubscribe();};
+  },[]);
+
+  const profileForMatch=(p)=>({acidity:p.acidity||5,fruitiness:p.fruitiness||5,sweetness:p.sweetness||5,body:p.body||5,intensity:p.intensity||5,aroma:p.aroma||5,finish:p.finish||5});
+
+  const getBestBean=(profile)=>{
+    if(!inventory.length)return null;
+    const ranked=[...inventory].sort((a,b)=>matchScore(profileForMatch(profile),b)-matchScore(profileForMatch(profile),a));
+    return ranked[0];
+  };
+
+  const CustomerCard=({c,showFull=false})=>{
+    const best=getBestBean(c);
+    const score=best?matchScore(profileForMatch(c),best):0;
+    return <div style={{background:showFull?'var(--cr2)':'#fff',borderRadius:13,border:`.5px solid ${showFull?'var(--b2)':'var(--b)'}`,padding:'12px 14px',marginBottom:10,cursor:showFull?'default':'pointer',boxShadow:showFull?'none':'var(--sh)'}} onClick={showFull?undefined:()=>setSelected(c)}>
+      <div style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:showFull?8:5}}>
+        <div style={{width:38,height:38,borderRadius:'50%',background:'var(--cr3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{c.avatar_url||'☕'}</div>
+        <div style={{flex:1}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+            <span style={{fontSize:13,fontWeight:600,color:'var(--ink)'}}>{c.name}</span>
+            {c.current_drinking&&<span style={{fontSize:9,color:'var(--ba4)',fontWeight:700,display:'flex',alignItems:'center',gap:3}}><span style={{width:5,height:5,borderRadius:'50%',background:'var(--ba4)',animation:'pulse 1.5s infinite',display:'inline-block'}}/>live</span>}
+          </div>
+          <div style={{fontSize:10,color:'var(--ink3)',marginBottom:c.current_drinking?3:0}}>{c.tier||'Explorer'} · {c.points||0} pts</div>
+          {c.current_drinking&&<div style={{fontSize:11,color:'var(--ba4)',fontWeight:500}}>
+            ☕ {(typeof c.current_drinking==='object'?c.current_drinking.bean:c.current_drinking)||'Drinking now'}
+          </div>}
+        </div>
+        {best&&<div style={{textAlign:'right',flexShrink:0}}>
+          <div style={{fontSize:9,color:'var(--ink3)',marginBottom:2}}>Best match</div>
+          <div style={{fontSize:11,fontWeight:600,color:'var(--ba4)'}}>{score}%</div>
+        </div>}
+      </div>
+      {showFull&&<>
+        <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:8}}>
+          {(c.likes||[]).map(p=><span key={p} className="chip sge" style={{fontSize:10,padding:'2px 6px',margin:0,marginRight:3,marginBottom:3}}>✓ {p}</span>)}
+          {(c.avoids||[]).map(a=><span key={a} className="chip rst" style={{fontSize:10,padding:'2px 6px',margin:0,marginRight:3,marginBottom:3}}>✗ {a}</span>)}
+        </div>
+        {best&&<div style={{background:score>80?'var(--sge3)':'var(--gld3)',borderRadius:10,padding:'9px 12px',marginBottom:8,border:`.5px solid ${score>80?'rgba(109,140,106,.3)':'rgba(200,151,74,.35)'}`}}>
+          <div style={{fontSize:9,fontWeight:700,color:score>80?'var(--sge)':'#7A5010',letterSpacing:.8,textTransform:'uppercase',marginBottom:4}}>⭐ Best bean from your stock ({score}%)</div>
+          <div className="serif" style={{fontSize:14,color:'var(--ink)',marginBottom:2}}>{best.name}</div>
+          <div style={{fontSize:10,color:'var(--ink3)'}}>{best.roastery} · {best.flavors?.slice(0,3).join(', ')}</div>
+        </div>}
+        <button onClick={()=>setSelected(null)} style={{fontSize:12,color:'var(--ink3)',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back</button>
+      </>}
+    </div>;
+  };
+
+  if(selected)return <div className="fi p16" style={{paddingTop:16}}>
+    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+      <button onClick={()=>setSelected(null)} style={{background:'var(--cr2)',border:'.5px solid var(--b2)',borderRadius:8,width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div className="serif" style={{fontSize:17,color:'var(--ink)'}}>Customer profile</div>
+    </div>
+    <CustomerCard c={selected} showFull={true}/>
+    <div style={{marginTop:10}}>
+      <div className="lbl" style={{marginBottom:8}}>All stock matches</div>
+      {inventory.length===0?<div style={{fontSize:12,color:'var(--ink3)',textAlign:'center',padding:'16px 0'}}>Add beans to inventory to see matches</div>:
+      [...inventory].sort((a,b)=>matchScore(profileForMatch(selected),b)-matchScore(profileForMatch(selected),a)).map(bean=>(
+        <div key={bean.id} style={{background:'#fff',borderRadius:11,border:'.5px solid var(--b)',padding:'11px 13px',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
+          <div style={{flex:1}}>
+            <div className="serif" style={{fontSize:13,color:'var(--ink)',marginBottom:2}}>{bean.name}</div>
+            <div style={{fontSize:10,color:'var(--ink3)',marginBottom:4}}>{bean.roastery} · {bean.roast}</div>
+            <div style={{display:'flex',gap:3}}>{(bean.flavors||[]).slice(0,3).map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 6px',margin:0,marginRight:3}}>{f}</span>)}</div>
+          </div>
+          <MR pct={matchScore(profileForMatch(selected),bean)} size={40}/>
+        </div>
+      ))}
+    </div>
+    <div style={{height:20}}/>
+  </div>;
+
+  return <div className="fi">
+    <div style={{background:'linear-gradient(160deg,var(--ba) 0%,var(--ba2) 100%)',padding:'22px 18px 24px',color:'#fff'}}>
+      <div className="serif" style={{fontSize:22,marginBottom:2}}>Customers</div>
+      <div style={{fontSize:11,color:'rgba(93,196,102,.6)'}}>Live view from the Brewly app · {customers.length} profiles</div>
+      <div style={{display:'flex',gap:7,marginTop:12}}>
+        {[['live',`🟢 Live now (${liveNow.length})`],['all','All customers'],['saved','Saved']].map(([id,lb])=>(
+          <button key={id} onClick={()=>sTab(id)} style={{padding:'6px 11px',borderRadius:999,border:'none',fontSize:11,fontWeight:600,cursor:'pointer',background:tab===id?'rgba(93,196,102,.9)':'rgba(255,255,255,.1)',color:tab===id?'#fff':'rgba(255,255,255,.6)',fontFamily:'Inter,sans-serif',flexShrink:0,whiteSpace:'nowrap'}}>{lb}</button>
+        ))}
+      </div>
+    </div>
+
+    {tab==='live'&&<div style={{padding:'12px 16px 20px'}}>
+      {liveNow.length===0?<div style={{textAlign:'center',padding:'32px 0',color:'var(--ink3)'}}>
+        <div style={{fontSize:32,marginBottom:8}}>☕</div>
+        <div style={{fontSize:13}}>No customers drinking right now</div>
+        <div style={{fontSize:11,marginTop:4}}>When customers set "Currently Drinking" in Brewly, they appear here live</div>
+      </div>:liveNow.map(c=><CustomerCard key={c.id} c={c}/>)}
+    </div>}
+
+    {tab==='all'&&<div style={{padding:'12px 16px 20px'}}>
+      {loading?<div style={{textAlign:'center',padding:'32px 0',color:'var(--ink3)'}}><span className="spin">⟳</span> Loading customers…</div>:
+      customers.length===0?<div style={{textAlign:'center',padding:'32px 0',color:'var(--ink3)'}}>
+        <div style={{fontSize:13}}>No customer profiles yet</div>
+        <div style={{fontSize:11,marginTop:4}}>Customers from the main Brewly app appear here as they sign up</div>
+      </div>:customers.map(c=><CustomerCard key={c.id} c={c}/>)}
+    </div>}
+
+    {tab==='saved'&&<div style={{padding:'12px 16px 20px'}}>
+      {LSB.get('saved_customers_'+(barista?.id||''),[]).length===0?<div style={{textAlign:'center',padding:'32px 0',color:'var(--ink3)'}}>
+        <div style={{fontSize:13}}>No saved customers yet</div>
+        <div style={{fontSize:11,marginTop:4}}>Save customers after scanning their QR code</div>
+      </div>:LSB.get('saved_customers_'+(barista?.id||''),[]).map(c=><CustomerCard key={c.id} c={c}/>)}
+    </div>}
+  </div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INTELLIGENCE / INSIGHTS SCREEN (barista-specific view)
+// ═══════════════════════════════════════════════════════════════
+function InsightsScreen({inventory,toast}){
+  const[tab,sTab]=useState('daily');
+  const TABS=[['daily','💡 Today'],['product','☕ Products'],['bean','🫘 Beans'],['taste','👅 Taste'],['stock','📦 Stock'],['regional','🌍 Regional']];
+
+  const DailyRecs=[
+    {type:'daily',color:'linear-gradient(135deg,#F5F0E8,#EDE4D6)',border:'var(--gld)',lcolor:'#7A5010',label:'Right now',icon:'🚀',title:'Promote iced filter drinks',body:'Temperature is 28°C — iced coffee orders spike 40% above 25°C. Highlight cold brew and iced V60 on your specials board today.'},
+    {type:'weekly',color:'var(--sge3)',border:'var(--sge)',lcolor:'var(--sge)',label:'This week',icon:'🔄',title:'Your fruity gap is showing',body:'42% of customer QR scans want fruity, high-acidity profiles. Your current stock skews chocolatey. The Ethiopia Yirgacheffe from Seam would close this immediately.'},
+    {type:'strategic',color:'var(--pur2)',border:'var(--pur)',lcolor:'var(--pur)',label:'Strategic',icon:'🧠',title:'Build your V60 reputation',body:'Customers who order V60 before 9am spend 34% more and return 2.1× more often. If you offer exceptional filter service in the morning, you build your most loyal customer segment.'},
+  ];
+
+  const ProductData=[['Flat White',142,31,'up',4.6],['Filter V60',89,19,'up',4.8],['Espresso',78,17,'steady',4.4],['Iced Filter',67,15,'up',4.7],['Batch Brew',45,10,'steady',4.2],['Cold Brew',37,8,'up',4.9]];
+  const BeanPerf=[['Ethiopia Single Origin',89,4.8,22,67,0,'🔥'],['Campbell Rd Blend',134,4.5,98,18,18,''],['Kenya AA',72,4.7,15,45,12,'📈']];
+  const TasteData={chocolatey:38,fruity:42,nutty:12,floral:8};
+  const lowStock=inventory.filter(b=>b.stock==='Low'||b.stock==='Out');
+
+  return <div className="fi">
+    <div style={{background:'linear-gradient(160deg,var(--ba) 0%,var(--ba2) 100%)',padding:'18px 18px 22px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+        <div className="serif" style={{fontSize:22}}>Intelligence</div>
+        <div className="live-tag"><div className="live-dot"/>Live data</div>
+      </div>
+      <div style={{display:'flex',gap:6,overflowX:'auto',scrollbarWidth:'none'}}>
+        {TABS.map(([id,lb])=><button key={id} onClick={()=>sTab(id)} style={{padding:'7px 11px',borderRadius:999,border:'none',fontSize:11,fontWeight:600,cursor:'pointer',background:tab===id?'rgba(93,196,102,.9)':'rgba(255,255,255,.1)',color:tab===id?'#fff':'rgba(255,255,255,.5)',fontFamily:'Inter,sans-serif',flexShrink:0,whiteSpace:'nowrap'}}>{lb}</button>)}
+      </div>
+    </div>
+
+    {tab==='daily'&&<div className="p16">
+      <div className="lbl" style={{marginBottom:12}}>Recommendation engine</div>
+      {DailyRecs.map((r,i)=>(
+        <div key={i} style={{background:r.color,borderRadius:12,padding:'13px 14px',marginBottom:9,borderLeft:`3px solid ${r.border}`}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}><span style={{fontSize:18}}>{r.icon}</span><span style={{fontSize:9,fontWeight:700,letterSpacing:.8,textTransform:'uppercase',color:r.lcolor}}>{r.label}</span></div>
+          <div style={{fontSize:13,fontWeight:600,color:'var(--ink)',marginBottom:5}}>{r.title}</div>
+          <div style={{fontSize:12,color:'var(--ink3)',lineHeight:1.55,marginBottom:9}}>{r.body}</div>
+          <button style={{padding:'7px 13px',borderRadius:999,background:'var(--ink)',color:'#fff',border:'none',fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:500,cursor:'pointer'}} onClick={()=>toast('Action noted ✓')}>Got it →</button>
+        </div>
+      ))}
+      <div style={{background:'var(--gld3)',borderRadius:12,padding:'12px 13px',border:'.5px solid rgba(200,151,74,.4)'}}>
+        <div style={{fontSize:10,fontWeight:700,color:'#7A5010',letterSpacing:.8,textTransform:'uppercase',marginBottom:6}}>✦ Insight from your customer data</div>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.55}}>Customers who scan QR codes and order based on taste matching give 31% higher average ratings. Every scan you process makes your recommendations more accurate.</div>
+      </div>
+    </div>}
+
+    {tab==='product'&&<div className="p16">
+      <div className="lbl" style={{marginBottom:12}}>Menu & drink trends (30 days)</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:14}}>
+        {[['Milk-based','72%','Dominate orders'],['Iced drinks','↑ 28%','Growing fast'],['Avg order','R68','Per transaction'],['Repeat rate','62%','Return customers']].map(([l,v,n])=>(
+          <div key={l} style={{background:'#fff',borderRadius:12,border:'.5px solid var(--b)',padding:'12px 13px'}}>
+            <div style={{fontSize:10,color:'var(--ink3)',marginBottom:5}}>{l}</div>
+            <div className="serif" style={{fontSize:20,color:'var(--ink)',marginBottom:2}}>{v}</div>
+            <div style={{fontSize:10,color:'var(--ba4)',fontWeight:500}}>{n}</div>
+          </div>
+        ))}
+      </div>
+      <div className="lbl" style={{marginBottom:8}}>Drink breakdown</div>
+      <div className="card" style={{padding:'0 14px'}}>
+        {ProductData.map(([name,orders,pct,trend,rating],i,a)=>(
+          <div key={name} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:i<a.length-1?'.5px solid var(--b)':'none'}}>
+            <div style={{width:90,fontSize:12,fontWeight:500,color:'var(--ink)',flexShrink:0}}>{name}</div>
+            <div style={{flex:1,height:5,background:'var(--b)',borderRadius:3,overflow:'hidden'}}><div style={{height:'100%',width:`${pct*2.5}%`,background:trend==='up'?'var(--ba4)':'rgba(30,15,7,.15)',borderRadius:3}}/></div>
+            <div style={{width:30,textAlign:'right',fontSize:11,color:'var(--ink3)',flexShrink:0}}>{pct}%</div>
+            <div style={{width:28,textAlign:'right',fontSize:11,color:'var(--gld)',flexShrink:0}}>★{rating}</div>
+          </div>
+        ))}
+      </div>
+    </div>}
+
+    {tab==='bean'&&<div className="p16">
+      <div className="lbl" style={{marginBottom:12}}>Bean performance by drink type</div>
+      {BeanPerf.map(([name,orders,rating,milk,filter,esp,trend])=>(
+        <div key={name} style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'13px',marginBottom:10}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+            <div><div style={{fontSize:13,fontWeight:500,color:'var(--ink)',marginBottom:2}}>{name} {trend}</div>
+            <div style={{fontSize:10,color:'var(--ink3)'}}>{orders} orders · ★ {rating}</div></div>
+            <span className="pts">{rating}★</span>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6}}>
+            {[['Milk drinks',milk,'var(--gld)'],['Filter',filter,'var(--ba4)'],['Espresso',esp,'var(--rst2)']].map(([l,v,c])=>(
+              <div key={l} style={{background:'var(--cr2)',borderRadius:8,padding:'8px',textAlign:'center'}}>
+                <div className="serif" style={{fontSize:16,color:'var(--ink)'}}>{v}</div>
+                <div style={{fontSize:9,color:'var(--ink3)',marginBottom:4}}>{l}</div>
+                <div style={{height:3,background:'var(--b)',borderRadius:2,overflow:'hidden'}}><div style={{height:'100%',width:`${Math.round((v/orders)*100)}%`,background:c,borderRadius:2}}/></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>}
+
+    {tab==='taste'&&<div className="p16">
+      <div className="lbl" style={{marginBottom:12}}>Customer taste profile distribution</div>
+      <div style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'14px',marginBottom:12}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:12}}>
+          {Object.entries(TasteData).map(([k,v])=>(
+            <div key={k} style={{background:'var(--cr2)',borderRadius:9,padding:'11px 12px',textAlign:'center'}}>
+              <div className="serif" style={{fontSize:22,color:'var(--ink)'}}>{v}%</div>
+              <div style={{fontSize:10,color:'var(--ink3)',textTransform:'capitalize'}}>{k}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{height:10,background:'var(--b)',borderRadius:6,overflow:'hidden',display:'flex'}}>
+          {Object.entries(TasteData).map(([k,v],i)=><div key={k} style={{flex:v,background:['var(--gld)','var(--ba4)','var(--rst2)','var(--pur)'][i]}}/>)}
+        </div>
+      </div>
+      <div style={{background:'var(--pur2)',borderRadius:11,padding:'11px 13px',borderLeft:'2px solid var(--pur)'}}>
+        <div style={{fontSize:11,fontWeight:600,color:'var(--pur)',marginBottom:4}}>💡 Taste gap</div>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.55}}>42% of your customers want fruity profiles — your stock is only 25% fruity. Adding one Ethiopian or Kenyan natural would directly close this gap and likely increase satisfaction scores.</div>
+      </div>
+    </div>}
+
+    {tab==='stock'&&<div className="p16">
+      <div className="lbl" style={{marginBottom:12}}>Your current inventory status</div>
+      {lowStock.length>0?lowStock.map((b,i)=>(
+        <div key={i} style={{background:'#fff',borderRadius:12,border:`.5px solid ${b.stock==='Out'?'var(--rst2)':'var(--gld)'}`,padding:'12px 14px',marginBottom:9,display:'flex',alignItems:'center',gap:12}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:b.stock==='Out'?'var(--rst)':'var(--gld)',flexShrink:0}}/>
+          <div style={{flex:1}}><div style={{fontSize:13,fontWeight:500,color:'var(--ink)',marginBottom:2}}>{b.name}</div>
+          <div style={{fontSize:11,color:'var(--ink3)'}}>{b.roastery} · <strong style={{color:b.stock==='Out'?'var(--rst)':'var(--gld)'}}>{b.stock}</strong></div></div>
+          <button style={{padding:'6px 11px',borderRadius:999,background:b.stock==='Out'?'var(--rst)':'var(--ink)',color:'#fff',border:'none',fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:600,cursor:'pointer'}} onClick={()=>toast(`Contacting supplier for ${b.name}…`)}>
+            {b.stock==='Out'?'Urgent':'Reorder'}
+          </button>
+        </div>
+      )):<div style={{background:'var(--sge3)',borderRadius:12,padding:'13px 14px',borderLeft:'2px solid var(--sge)',marginBottom:12}}>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.5}}>✓ All {inventory.length} beans are well-stocked. No alerts right now.</div>
+      </div>}
+      <div style={{background:'var(--rst3)',borderRadius:11,padding:'11px 13px',borderLeft:'2px solid var(--rst2)',marginTop:8}}>
+        <div style={{fontSize:11,fontWeight:600,color:'var(--rst)',marginBottom:4}}>⚠ Waste alert</div>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.55}}>8% bean waste detected during dial-in on Monday mornings — double the industry average. Consider moving dial-in to Sunday evenings. Est. savings: R340/month.</div>
+      </div>
+    </div>}
+
+    {tab==='regional'&&<div className="p16">
+      <div className="lbl" style={{marginBottom:12}}>What's trending near you</div>
+      {[['Light roasts trending in JHB','📈 +34% across JHB specialty cafés this quarter. Father Coffee and Bean There both report significant upticks.'],['Oat milk adoption at 58%','📊 Your area outperforms the national 42% average. Consider oat milk as a standing default option.'],['Ethiopian origins dominating','🔥 20%+ sales increases on Ethiopian single origins across JHB. Customer education is driving demand.'],['Afternoon filter culture growing','☕ 3–5pm filter orders up 28% in JHB specialty. This is your biggest untapped slot for premium bean sales.']].map(([t,d])=>(
+        <div key={t} style={{background:'#fff',borderRadius:12,border:'.5px solid var(--b)',padding:'13px 14px',marginBottom:9}}>
+          <div style={{fontSize:13,fontWeight:600,color:'var(--ink)',marginBottom:5}}>{t}</div>
+          <div style={{fontSize:12,color:'var(--ink3)',lineHeight:1.55}}>{d}</div>
+        </div>
+      ))}
+    </div>}
+    <div style={{height:24}}/>
+  </div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FEED SCREEN — barista sees same feed as customers, can post
+// ═══════════════════════════════════════════════════════════════
+function FeedScreen({barista,baristaProfile,toast}){
+  const[feed,setFeed]=useState([]);
+  const[upvoted,setUpvoted]=useState(new Set());
+  const[loading,sLoading]=useState(true);
+  const[posting,sPosting]=useState(false);
+  const[newPost,sNewPost]=useState({text:'',bean:'',type:'review',rating:0});
+
+  useEffect(()=>{
+    (async()=>{
+      const [feedData,upvoteIds]=await Promise.all([DB.getFeed(20).catch(()=>[]),DB.getUserUpvotes(barista.id).catch(()=>[])]);
+      setFeed(feedData);setUpvoted(new Set(upvoteIds));sLoading(false);
+    })();
+    const sub=DB.subscribeToFeed&&DB.subscribeToFeed(p=>setFeed(prev=>[p,...prev.slice(0,49)]));
+    return()=>{if(sub&&sub.unsubscribe)sub.unsubscribe();};
+  },[]);
+
+  const handleUpvote=async(postId)=>{
+    const isLiked=upvoted.has(postId);
+    setFeed(f=>f.map(x=>x.id===postId?{...x,upvotes:(x.upvotes||0)+(isLiked?-1:1),liked:!isLiked}:x));
+    setUpvoted(prev=>{const s=new Set(prev);isLiked?s.delete(postId):s.add(postId);return s;});
+    await DB.toggleUpvote(barista.id,postId,isLiked).catch(()=>{});
+  };
+
+  const submitPost=async()=>{
+    if(!newPost.text)return;
+    try{
+      const post=await DB.createPost({user_id:barista.id,type:newPost.type,bean_name:newPost.bean,text_content:newPost.text,rating:newPost.rating||null,photos:[],flavors:[],pts:10,upvotes_count:0});
+      setFeed(prev=>[{...post,userId:barista.id,upvotes:0,liked:false,text:newPost.text,time:'Just now',profiles:{name:barista.name,is_barista:true,avatar_url:baristaProfile?.avatar_url}},...prev]);
+      sNewPost({text:'',bean:'',type:'review',rating:0});sPosting(false);
+      toast('Post shared to Brewly feed ✓');
+    }catch(e){toast('Post failed: '+e.message);}
+  };
+
+  return <div className="fi">
+    <div style={{background:'linear-gradient(160deg,var(--ba) 0%,var(--ba2) 100%)',padding:'22px 18px 24px',color:'#fff'}}>
+      <div className="serif" style={{fontSize:22,marginBottom:2}}>Community Feed</div>
+      <div style={{fontSize:11,color:'rgba(93,196,102,.6)'}}>Same feed as the Brewly app · Your posts appear instantly</div>
+    </div>
+
+    {/* Post composer */}
+    {posting?<div style={{background:'var(--cr2)',borderRadius:14,margin:'12px 16px',padding:14,border:'.5px solid var(--b)'}}>
+      <div className="serif" style={{fontSize:15,color:'var(--ink)',marginBottom:10}}>Share with the community</div>
+      <div style={{display:'flex',gap:6,marginBottom:10}}>
+        {[['review','⭐ Review'],['tip','💡 Tip'],['currently_drinking','☕ Now drinking']].map(([v,lb])=>(
+          <button key={v} onClick={()=>sNewPost(p=>({...p,type:v}))} style={{padding:'6px 11px',borderRadius:999,border:`.5px solid ${newPost.type===v?'var(--ba4)':'var(--b2)'}`,background:newPost.type===v?'var(--ba3)':'var(--cr2)',color:newPost.type===v?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer',fontWeight:newPost.type===v?600:400}}>{lb}</button>
+        ))}
+      </div>
+      {(newPost.type==='review'||newPost.type==='currently_drinking')&&<input className="inp" placeholder="Bean name (optional)" value={newPost.bean} onChange={e=>sNewPost(p=>({...p,bean:e.target.value}))} style={{fontSize:13,marginBottom:8}}/>}
+      <textarea className="ta" placeholder="Share a tasting note, brew tip, or coffee discovery…" value={newPost.text} onChange={e=>sNewPost(p=>({...p,text:e.target.value}))}/>
+      <div style={{display:'flex',gap:8,marginTop:10}}>
+        <button className="btn btn-grn" style={{flex:2,padding:'11px'}} onClick={submitPost}>Share to feed</button>
+        <button className="btn btn-out" style={{flex:1,fontSize:13,padding:'11px'}} onClick={()=>sPosting(false)}>Cancel</button>
+      </div>
+    </div>:<div style={{padding:'12px 16px 0'}}>
+      <button onClick={()=>sPosting(true)} style={{width:'100%',background:'rgba(61,155,72,.12)',border:'.5px solid rgba(61,155,72,.3)',borderRadius:12,padding:'13px',fontSize:13,fontWeight:500,cursor:'pointer',fontFamily:'Inter,sans-serif',color:'var(--ba4)',display:'flex',alignItems:'center',gap:8}}>
+        <span style={{fontSize:16}}>☕</span> Share a tasting note or tip with the community…
+      </button>
+    </div>}
+
+    {loading?<div style={{textAlign:'center',padding:'32px',color:'var(--ink3)'}}><span className="spin">⟳</span> Loading feed…</div>:
+    feed.map(post=>{
+      const auth=post.profiles||{name:post.userId==='mock'?'Community':post.userId?.slice(0,8)||'Someone',avatar_url:'☕',is_barista:false};
+      const typeLabel={'photo':'📸 Photo','review':'⭐ Review','poll':'📊 Poll','currently_drinking':'🎵 Now drinking','video':'🎬 Video','tip':'💡 Tip'};
+      return <div key={post.id} className="feed-item">
+        <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+          <div className="av" style={{background:auth.is_barista?'#2A1810':'var(--cr3)',color:auth.is_barista?'#fff':'var(--ink)',fontFamily:'Cormorant Garamond,serif',width:38,height:38,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>
+            {auth.avatar_url||'☕'}
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3,flexWrap:'wrap'}}>
+              <span style={{fontSize:13,fontWeight:600,color:'var(--ink)'}}>{auth.name||'Someone'}</span>
+              {auth.is_barista&&<span style={{fontSize:9,background:'var(--gld3)',color:'var(--ink2)',padding:'2px 6px',borderRadius:999,fontWeight:600}}>Barista</span>}
+              <span style={{fontSize:10,color:'var(--ink3)'}}>{post.time}</span>
+              <span style={{marginLeft:'auto',fontSize:10,color:'var(--ba4)',fontWeight:600}}>{typeLabel[post.type]||post.type}</span>
+            </div>
+            {post.bean_name&&<div style={{fontSize:11,color:'var(--ink3)',marginBottom:3,fontWeight:500}}>{post.bean_name}{post.cafe_name&&<> · {post.cafe_name}</>}{post.method&&<> · {post.method}</>}</div>}
+            {post.rating>0&&<div style={{fontSize:11,color:'var(--gld)',marginBottom:3}}>{'★'.repeat(post.rating)}</div>}
+            <div style={{fontSize:13,color:'var(--ink)',lineHeight:1.55,marginBottom:6}}>{post.text||post.text_content}</div>
+            {(post.flavors||[]).length>0&&<div style={{marginBottom:5}}>{post.flavors.map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:0,marginRight:3}}>  {f}</span>)}</div>}
+            <div style={{display:'flex',alignItems:'center',gap:10,marginTop:4}}>
+              <button onClick={()=>handleUpvote(post.id)} className={`upvote-btn${(post.liked||upvoted.has(post.id))?' on':''}`} style={{display:'inline-flex',alignItems:'center',gap:3,fontSize:11,cursor:'pointer',color:(post.liked||upvoted.has(post.id))?'var(--gld)':'var(--ink3)',background:(post.liked||upvoted.has(post.id))?'var(--gld3)':'none',border:'none',padding:'3px 7px',borderRadius:6,fontFamily:'Inter,sans-serif'}}>▲ {post.upvotes||post.upvotes_count||0}</button>
+              <button onClick={()=>toast('Reply coming soon!')} style={{fontSize:11,cursor:'pointer',color:'var(--ink3)',background:'none',border:'none',fontFamily:'Inter,sans-serif'}}>💬 Reply</button>
+            </div>
+          </div>
+        </div>
+      </div>;
+    })}
+    <div style={{height:20}}/>
+  </div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MY PROFILE SCREEN
+// ═══════════════════════════════════════════════════════════════
+function ProfileScreen({barista,baristaProfile,setBaristaProfile,kudosCount,avgRating,onSignOut,toast}){
+  const[editing,sEditing]=useState(false);
+  const[form,sForm]=useState({cafe_name:baristaProfile?.cafe_name||'',specialties:(baristaProfile?.specialties||[]).join(', '),years_exp:baristaProfile?.years_exp||0,bio:baristaProfile?.bio||''});
+  const[kudosList,setKudosList]=useState([]);
+
+  useEffect(()=>{
+    DB.getMyKudos(barista.id).then(setKudosList).catch(()=>{});
+  },[]);
+
+  const save=async()=>{
+    const updated={...baristaProfile,...form,specialties:form.specialties.split(',').map(s=>s.trim()).filter(Boolean),years_exp:parseInt(form.years_exp)||0};
+    await DB.saveBaristaProfile(barista.id,updated).catch(()=>{});
+    setBaristaProfile(updated);sEditing(false);toast('Profile saved ✓');
+  };
+
+  return <div className="fi">
+    <div style={{background:'linear-gradient(160deg,var(--ba) 0%,var(--ba2) 100%)',padding:'22px 18px 28px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:14}}>
+        <div style={{width:52,height:52,borderRadius:'50%',background:'rgba(61,155,72,.2)',border:'2px solid rgba(93,196,102,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>☕</div>
+        <button onClick={onSignOut} style={{background:'rgba(255,255,255,.08)',border:'.5px solid rgba(255,255,255,.15)',borderRadius:9,padding:'7px 12px',color:'rgba(255,255,255,.6)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>Sign out</button>
+      </div>
+      <div className="serif" style={{fontSize:22,color:'#fff',marginBottom:2}}>{barista.name}</div>
+      <div style={{fontSize:11,color:'rgba(93,196,102,.6)',marginBottom:10}}>{baristaProfile?.cafe_name||'Barista'} · Brewly Barista Portal</div>
+      <div style={{display:'flex',gap:0}}>
+        {[[kudosCount||baristaProfile?.kudos_count||0,'kudos'],[(avgRating||baristaProfile?.avg_rating||0).toFixed(1)+'★','rating'],[baristaProfile?.years_exp||0+'yr','exp']].map(([n,l])=>(
+          <div key={l} style={{flex:1,textAlign:'center',borderRight:'.5px solid rgba(255,255,255,.1)',padding:'5px 4px'}}>
+            <div className="serif" style={{fontSize:20,color:'#fff'}}>{n}</div>
+            <div style={{fontSize:9,color:'rgba(255,255,255,.4)'}}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="px16" style={{paddingTop:14}}>
+      {/* Sync status */}
+      <div style={{background:USE_SUPABASE?'var(--sge3)':'var(--gld3)',borderRadius:11,padding:'11px 13px',borderLeft:`2px solid ${USE_SUPABASE?'var(--sge)':'var(--gld)'}`,marginBottom:14}}>
+        <div style={{fontSize:11,fontWeight:600,color:USE_SUPABASE?'var(--sge)':'#7A5010',marginBottom:3}}>
+          {USE_SUPABASE?'✓ Synced with Brewly cloud':'📦 Local storage mode'}
+        </div>
+        <div style={{fontSize:12,color:'var(--ink)',lineHeight:1.5}}>
+          {USE_SUPABASE?'Your inventory, scans and kudos sync live with the main Brewly customer app.':'Add your Supabase anon JWT key to enable live sync with the main app.'}
+        </div>
+      </div>
+
+      {/* Edit profile */}
+      {!editing?<>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+          <div className="lbl">Barista profile</div>
+          <button onClick={()=>sEditing(true)} style={{fontSize:12,color:'var(--ba4)',fontWeight:600,background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Edit →</button>
+        </div>
+        <div className="card" style={{padding:'0 14px',marginBottom:14}}>
+          {[['Café / Roastery',baristaProfile?.cafe_name||'—'],['Specialties',(baristaProfile?.specialties||[]).join(', ')||'—'],['Experience',`${baristaProfile?.years_exp||0} years`],['Bio',baristaProfile?.bio||'—']].map(([l,v],i,a)=>(
+            <div key={l} style={{padding:'10px 0',borderBottom:i<a.length-1?'.5px solid var(--b)':'none'}}>
+              <div className="lbl" style={{marginBottom:3}}>{l}</div>
+              <div style={{fontSize:13,color:'var(--ink)'}}>{v}</div>
+            </div>
+          ))}
+        </div>
+      </>:<>
+        <div className="lbl" style={{marginBottom:8}}>Edit profile</div>
+        <div style={{marginBottom:10}}><label className="lbl" style={{display:'block',marginBottom:4}}>Café / Roastery</label>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:6}}>
+            {ROASTERIES.slice(0,5).map(r=><button key={r.id} onClick={()=>sForm(f=>({...f,cafe_name:r.name}))} style={{padding:'5px 9px',borderRadius:999,border:`.5px solid ${form.cafe_name===r.name?'var(--ink)':'var(--b2)'}`,background:form.cafe_name===r.name?'var(--ink)':'var(--cr2)',color:form.cafe_name===r.name?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{r.emoji} {r.name.split(' ')[0]}</button>)}
+          </div>
+          <input className="inp" value={form.cafe_name} onChange={e=>sForm(f=>({...f,cafe_name:e.target.value}))} placeholder="Café name" style={{fontSize:13}}/>
+        </div>
+        <div style={{marginBottom:10}}><label className="lbl" style={{display:'block',marginBottom:4}}>Specialties</label>
+          <input className="inp" value={form.specialties} onChange={e=>sForm(f=>({...f,specialties:e.target.value}))} placeholder="e.g. V60, Espresso, Latte art" style={{fontSize:13}}/>
+        </div>
+        <div style={{marginBottom:10}}><label className="lbl" style={{display:'block',marginBottom:4}}>Years experience</label>
+          <input className="inp" type="number" min="0" max="40" value={form.years_exp} onChange={e=>sForm(f=>({...f,years_exp:e.target.value}))} style={{fontSize:13}}/>
+        </div>
+        <div style={{marginBottom:12}}><label className="lbl" style={{display:'block',marginBottom:4}}>Bio</label>
+          <textarea className="ta" value={form.bio} onChange={e=>sForm(f=>({...f,bio:e.target.value}))} placeholder="What you love about coffee and your craft…"/>
+        </div>
+        <div style={{display:'flex',gap:8,marginBottom:14}}>
+          <button className="btn btn-grn" style={{flex:2}} onClick={save}>Save Profile</button>
+          <button className="btn btn-out" style={{flex:1,fontSize:13}} onClick={()=>sEditing(false)}>Cancel</button>
+        </div>
+      </>}
+
+      {/* Kudos received */}
+      <div className="lbl" style={{marginBottom:8}}>Recent kudos from customers</div>
+      {kudosList.length===0?<div style={{background:'var(--cr2)',borderRadius:11,padding:'13px 14px',marginBottom:14,fontSize:12,color:'var(--ink3)',textAlign:'center'}}>
+        No kudos yet — they'll appear here as customers rate you in the Brewly app
+      </div>:kudosList.slice(0,5).map((k,i)=>(
+        <div key={i} style={{background:'var(--gld3)',borderRadius:11,padding:'11px 13px',marginBottom:8,border:'.5px solid rgba(200,151,74,.3)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+            <span style={{fontSize:12,fontWeight:600,color:'var(--ink)'}}>{k.profiles?.name||'A customer'}</span>
+            <span style={{fontSize:12,color:'var(--gld)'}}>{'★'.repeat(k.rating||5)}</span>
+          </div>
+          {k.message&&<div style={{fontSize:12,color:'var(--ink3)',fontStyle:'italic'}}>"{k.message}"</div>}
+          {k.tags?.length>0&&<div style={{marginTop:5}}>{k.tags.map(t=><span key={t} className="chip gld" style={{fontSize:10,padding:'2px 7px',margin:'0 3px 0 0'}}>{t}</span>)}</div>}
+        </div>
+      ))}
+    </div>
+    <div style={{height:20}}/>
+  </div>;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// ROOT BARISTA APP
+// ═══════════════════════════════════════════════════════════════
+function BaristaApp(){
+  const[authUser,setAuthUser]=useState(null);
+  const[baristaProfile,setBaristaProfile]=useState(null);
+  const[inventory,setInventory]=useState([]);
+  const[screen,sScreen]=useState('scan');
+  const[toast,sToast]=useState('');
+  const[appLoading,sAppLoading]=useState(true);
+  const[alerts,setAlerts]=useState(0);
+
+  const showToast=m=>sToast(m);
+
+  useEffect(()=>{
+    (async()=>{
+      try{
+        const session=await DB.auth.getSession();
+        if(session&&session.user){
+          const[profile,bpProfile,inv]=await Promise.all([
+            DB.getProfile(session.user.id).catch(()=>null),
+            DB.getBaristaProfile(session.user.id).catch(()=>null),
+            DB.getInventory(session.user.id).catch(()=>[]),
+          ]);
+          setAuthUser({...session.user,...profile});
+          setBaristaProfile(bpProfile||{cafe_name:'',specialties:[],years_exp:0,bio:'',kudos_count:0,avg_rating:0});
+          if(inv.length>0)setInventory(inv);
+          else setInventory([
+            {id:'inv1',name:'Antimaceration Geisha by El Paraíso',roastery:'Father Coffee',origin:'Colombia',process:'Vacuum Fermented',roast:'Light',flavors:['Guava','Pineapple','Passionfruit'],stock:'High',acidity:8.5,fruitiness:10,body:8,sweetness:8,intensity:9,auto_loaded:true},
+            {id:'inv2',name:'Ethiopia Single Origin',roastery:'Bean There',origin:'Ethiopia',process:'Washed',roast:'Light-Medium',flavors:['Jasmine','Bergamot','Lemon'],stock:'Medium',acidity:8.5,fruitiness:8.5,body:3.5,sweetness:6.5,intensity:4.5,auto_loaded:true},
+          ]);
+          // Count low stock alerts
+          setAlerts(inv.filter(b=>b.stock==='Low'||b.stock==='Out').length);
+        }
+      }catch(e){console.warn('Session init:',e);}
+      sAppLoading(false);
+    })();
+  },[]);
+
+  // Update alert count when inventory changes
+  useEffect(()=>{
+    setAlerts(inventory.filter(b=>b.stock==='Low'||b.stock==='Out').length);
+  },[inventory]);
+
+  const handleAuth=async(user,profile)=>{
+    setAuthUser({...user,...profile});
+    setBaristaProfile(profile||{cafe_name:'',specialties:[],years_exp:0,bio:'',kudos_count:0,avg_rating:0});
+    // Load inventory
+    const inv=await DB.getInventory(user.id).catch(()=>[]);
+    if(inv.length>0)setInventory(inv);
+  };
+
+  const handleSignOut=async()=>{
+    await DB.auth.signOut().catch(()=>{});
+    setAuthUser(null);setBaristaProfile(null);sScreen('scan');showToast('Signed out');
+  };
+
+  const NAV=[
+    {id:'scan',    lbl:'Scan',      alert:false, ic:()=><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3"/><path d="M20 14v3"/><path d="M14 20h6"/></svg>},
+    {id:'inventory',lbl:'Stock',    alert:alerts>0, ic:()=><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>},
+    {id:'customers',lbl:'Customers',alert:false, ic:()=><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>},
+    {id:'insights', lbl:'Insights',  alert:false, ic:()=><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>},
+    {id:'feed',     lbl:'Feed',      alert:false, ic:()=><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>},
+    {id:'profile',  lbl:'Profile',   alert:false, ic:()=><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>},
+  ];
+
+  // Loading
+  if(appLoading)return <div className="shell" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16}}>
+    <div className="serif" style={{fontSize:36,color:'#fff',letterSpacing:'-.5px'}}>Brew<em style={{fontStyle:'italic',color:'var(--ba5)'}}>ly</em></div>
+    <div style={{fontSize:11,color:'rgba(93,196,102,.5)',fontWeight:600,letterSpacing:1.5,textTransform:'uppercase',marginTop:-8}}>Barista Portal</div>
+    <div style={{width:28,height:28,border:'3px solid rgba(93,196,102,.15)',borderTop:'3px solid var(--ba4)',borderRadius:'50%',animation:'spin .8s linear infinite',marginTop:8}}/>
+  </div>;
+
+  // Auth gate
+  if(!authUser)return <div className="shell">
+    <div className="view"><AuthScreen onAuth={handleAuth} toast={showToast}/></div>
+    {toast&&<Toast msg={toast} onDone={()=>sToast('')}/>}
+  </div>;
+
+  return <div className="shell">
+    <div className="view">
+      {screen==='scan'      &&<ScanScreen       barista={authUser} inventory={inventory} toast={showToast}/>}
+      {screen==='inventory' &&<InventoryScreen   barista={authUser} inventory={inventory} setInventory={setInventory} toast={showToast}/>}
+      {screen==='customers' &&<CustomersScreen   barista={authUser} inventory={inventory} toast={showToast}/>}
+      {screen==='insights'  &&<InsightsScreen    inventory={inventory} toast={showToast}/>}
+      {screen==='feed'      &&<FeedScreen        barista={authUser} baristaProfile={baristaProfile} toast={showToast}/>}
+      {screen==='profile'   &&<ProfileScreen     barista={authUser} baristaProfile={baristaProfile} setBaristaProfile={setBaristaProfile} kudosCount={baristaProfile?.kudos_count||0} avgRating={baristaProfile?.avg_rating||0} onSignOut={handleSignOut} toast={showToast}/>}
+    </div>
+
+    <nav className="nav">
+      {NAV.map(({id,lbl,alert,ic:Ic})=>(
+        <button key={id} className={`nb${screen===id?' on':''}`} onClick={()=>sScreen(id)} style={{position:'relative'}}>
+          <Ic/>
+          {lbl}
+          <div className="pip"/>
+          {alert&&<div className="alert-badge">{alerts>9?'9+':alerts}</div>}
+        </button>
+      ))}
+    </nav>
+    {toast&&<Toast msg={toast} onDone={()=>sToast('')}/>}
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<BaristaApp/>);
+</script>
+</body>
+</html>
+

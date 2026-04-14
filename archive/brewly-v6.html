@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Brewly</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#120B06;overflow:hidden;-webkit-font-smoothing:antialiased}
+:root{
+  --cr:#FAF8F3;--cr2:#F2EDE3;--cr3:#E8DFD0;
+  --ink:#1E0F07;--ink2:#3D2010;--ink3:#6B4030;
+  --gld:#C8974A;--gld2:#E8C07A;--gld3:#F5E4C0;
+  --sge:#6D8C6A;--sge2:#9DB89A;--sge3:#E2F0DF;
+  --rst:#A83820;--rst2:#D4614A;--rst3:#FCEAE6;
+  --b:rgba(30,15,7,.08);--b2:rgba(30,15,7,.14);--b3:rgba(30,15,7,.22);
+  --sh:0 1px 8px rgba(30,15,7,.06);--sh2:0 4px 20px rgba(30,15,7,.10);--sh3:0 12px 40px rgba(30,15,7,.15);
+}
+body{display:flex;align-items:center;justify-content:center}
+.shell{width:390px;height:820px;background:var(--cr);border-radius:32px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.7)}
+.view{flex:1;overflow-y:auto;overflow-x:hidden}
+.view::-webkit-scrollbar{display:none}
+.nav{display:flex;background:#fff;border-top:.5px solid var(--b2);padding:7px 0 9px;flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;background:none;border:none;font-family:'Inter',sans-serif;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);cursor:pointer;transition:color .15s}
+.nb.on{color:var(--ink)}.nb svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5}
+.pip{width:4px;height:4px;border-radius:2px;background:var(--gld);opacity:0;margin-top:1px;transition:opacity .15s}.nb.on .pip{opacity:1}
+.serif{font-family:'Cormorant Garamond',serif}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+.btn:active{opacity:.8}.btn-dk{background:var(--ink);color:#fff}.btn-sge{background:var(--sge);color:#fff}.btn-out{background:transparent;border:.5px solid var(--b3);color:var(--ink)}
+.inp{width:100%;padding:11px 14px;border-radius:10px;border:.5px solid var(--b2);background:var(--cr2);font-size:14px;color:var(--ink);outline:none;font-family:'Inter',sans-serif;transition:border-color .15s}
+.inp:focus{border-color:var(--gld);background:#fff}.inp::placeholder{color:var(--ink3)}
+.ta{width:100%;padding:11px 14px;border-radius:10px;border:.5px solid var(--b2);background:var(--cr2);font-size:13px;color:var(--ink);outline:none;font-family:'Inter',sans-serif;resize:none;min-height:80px;line-height:1.55}
+.ta:focus{border-color:var(--gld);background:#fff}
+.chip{display:inline-block;padding:6px 12px;border-radius:999px;font-size:11px;border:.5px solid var(--b2);background:var(--cr2);color:var(--ink);cursor:pointer;margin:3px;transition:all .15s;font-weight:500}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}.chip.sge{background:var(--sge3);color:var(--sge);border-color:rgba(109,140,106,.3)}.chip.gld{background:var(--gld3);color:var(--ink2);border-color:rgba(200,151,74,.35)}.chip.rst{background:var(--rst3);color:var(--rst);border-color:rgba(168,56,32,.25)}
+.mb{position:absolute;inset:0;background:rgba(18,11,6,.58);z-index:200;display:flex;align-items:flex-end;animation:fIn .2s ease}
+.ms{background:var(--cr);border-radius:24px 24px 0 0;width:100%;max-height:92%;overflow-y:auto;padding:20px 20px 32px}
+.ms::-webkit-scrollbar{display:none}.mh{width:40px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 18px}
+.toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;pointer-events:none;animation:toastIn .2s ease;box-shadow:var(--sh3)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fi{animation:slideUp .2s ease}
+@keyframes fIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}.pulse-a{animation:pulse 2s ease infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(200,151,74,.4)}50%{box-shadow:0 0 20px rgba(200,151,74,.8)}}
+/* CURRENTLY DRINKING */
+.cd-bar{background:linear-gradient(135deg,#1A0A04,#2C1208);border:1px solid rgba(200,151,74,.3);border-radius:16px;padding:13px 15px;margin:12px 16px 0;cursor:pointer;position:relative;overflow:hidden}
+.cd-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(200,151,74,.5),transparent)}
+.cd-live{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gld2)}
+.cd-dot{width:6px;height:6px;border-radius:50%;background:var(--gld);animation:pulse 1.5s ease infinite}
+.cd-name{font-family:'Cormorant Garamond',serif;font-size:17px;color:#fff;margin:4px 0 2px;line-height:1.2}
+.cd-sub{font-size:11px;color:rgba(255,255,255,.45)}
+.cd-wave{display:flex;align-items:flex-end;gap:2px;height:16px}
+.cd-wave-bar{width:3px;border-radius:2px;background:var(--gld);animation:wave 1.2s ease infinite}
+.cd-wave-bar:nth-child(2){animation-delay:.1s;height:60%}
+.cd-wave-bar:nth-child(3){animation-delay:.2s;height:100%}
+.cd-wave-bar:nth-child(4){animation-delay:.3s;height:70%}
+.cd-wave-bar:nth-child(5){animation-delay:.4s;height:45%}
+@keyframes wave{0%,100%{transform:scaleY(.5)}50%{transform:scaleY(1)}}
+/* FEED */
+.feed-item{padding:14px 16px;border-bottom:.5px solid var(--b);background:#fff}
+.feed-img{width:100%;border-radius:12px;object-fit:cover;margin:8px 0 0;cursor:pointer;max-height:220px}
+.feed-video{width:100%;border-radius:12px;margin:8px 0 0;max-height:220px;background:#000}
+.img-grid{display:grid;gap:4px;margin:8px 0 0}
+.img-grid.g2{grid-template-columns:1fr 1fr}
+.img-grid.g3{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
+.img-grid img{width:100%;border-radius:10px;object-fit:cover;height:110px;cursor:pointer}
+.img-grid .g-main{grid-row:1/3;height:228px}
+/* PHOTO UPLOAD */
+.photo-upload-zone{border:1.5px dashed var(--b3);border-radius:14px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--cr2)}
+.photo-upload-zone:hover,.photo-upload-zone.drag{border-color:var(--gld);background:var(--gld3)}
+.photo-preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.photo-preview{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1}
+.photo-preview img{width:100%;height:100%;object-fit:cover}
+.photo-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+/* PROGRESS */
+.prog{height:4px;background:var(--b);border-radius:2px;overflow:hidden}
+.prog-f{height:100%;background:var(--sge);border-radius:2px;transition:width .4s ease}
+/* STARS */
+.star{font-size:28px;cursor:pointer;color:var(--b2);transition:color .12s}.star.lit{color:var(--gld)}
+/* BADGES */
+.pts-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;background:var(--gld3);color:var(--ink2);font-size:11px;font-weight:600;border:.5px solid rgba(200,151,74,.4)}
+.hot-badge{background:linear-gradient(135deg,#FF4500,#FF8C00);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:3px}
+.rise-badge{background:#EDE9FE;color:#5B21B6;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px}
+.live-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#fff;background:var(--rst2);padding:2px 8px;border-radius:999px;letter-spacing:.3px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:pulse 1.5s infinite}
+/* MAP */
+#brewly-map{width:100%;height:100%;z-index:1}
+.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 6px 28px rgba(30,15,7,.2)!important;border:none!important;padding:0!important}
+.leaflet-popup-content{margin:0!important;font-family:'Inter',sans-serif}
+.leaflet-popup-tip-container{display:none!important}
+/* CARDS */
+.card{background:#fff;border:.5px solid var(--b);border-radius:16px;box-shadow:var(--sh)}
+.lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.sep{height:.5px;background:var(--b);margin:10px 0}
+.p16{padding:16px}.px16{padding-left:16px;padding-right:16px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}
+.bb{background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.15);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.bbl{background:var(--cr2);border:.5px solid var(--b2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+/* FEED TABS */
+.ftab-row{display:flex;border-bottom:.5px solid var(--b);background:#fff}
+.ftab{flex:1;padding:11px 6px;text-align:center;font-size:11px;font-weight:500;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.ftab.on{color:var(--ink);border-bottom-color:var(--gld)}
+/* POLL */
+.poll-opt{background:var(--cr2);border:.5px solid var(--b2);border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .15s}
+.poll-opt:hover{border-color:var(--gld)}
+.poll-fill{position:absolute;top:0;left:0;bottom:0;background:rgba(200,151,74,.12);transition:width .4s ease}
+/* PHOTO LIGHTBOX */
+.lightbox{position:absolute;inset:0;background:rgba(0,0,0,.92);z-index:500;display:flex;align-items:center;justify-content:center}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo,useCallback}=React;
+
+// ═══════════════════ DATA ═══════════════════════════════════════
+const CAFES_DB=[
+  {id:'c1',name:'Father Coffee Kramerville',short:'Father KV',lat:-26.2041,lng:28.0473,color:'#2A1810',emoji:'☕',area:'Kramerville',hours:'Mon–Sat 7–17',rating:4.8,fit:97,isOpen:true,
+   hotBeans:['Antimaceration Geisha by El Paraíso','Lalesa Black Honey, Yirgacheffe'],specialties:['V60','AeroPress','Filter bar'],addr:'142 Fox St, Kramerville, JHB'},
+  {id:'c2',name:'Father Coffee Rosebank',short:'Father RB',lat:-26.1472,lng:28.0438,color:'#2A1810',emoji:'☕',area:'Rosebank',hours:'Mon–Sun 7–18',rating:4.7,fit:94,isOpen:true,
+   hotBeans:['Chombi Natural Geisha'],specialties:['Espresso','Milk drinks'],addr:'The Zone, Oxford Rd, Rosebank'},
+  {id:'c3',name:'Bean There Braamfontein',short:'Bean There',lat:-26.1934,lng:28.0345,color:'#1E2A18',emoji:'🌍',area:'Braamfontein',hours:'Mon–Sat 7–17',rating:4.6,fit:88,isOpen:true,
+   hotBeans:['Ethiopia Single Origin','Kenya Single Origin'],specialties:['Filter','Washed origins','Education'],addr:'25 Paul Nel St, Braamfontein'},
+  {id:'c4',name:'Tribe Coffee Hyde Park',short:'Tribe HP',lat:-26.1085,lng:28.0428,color:'#162016',emoji:'🏔️',area:'Hyde Park',hours:'Mon–Sun 7–17',rating:4.6,fit:85,isOpen:true,
+   hotBeans:['Rwanda Single Origin'],specialties:['African origins','Cupping'],addr:'Hyde Park Corner, JHB'},
+  {id:'c5',name:'Blank Slate Coffee',short:'Blank Slate',lat:-26.1952,lng:28.0342,color:'#28241A',emoji:'⬜',area:'Braamfontein',hours:'Mon–Fri 7–16',rating:4.5,fit:78,isOpen:false,
+   hotBeans:[],specialties:['Espresso','Milk drinks'],addr:'70 Juta St, Braamfontein'},
+];
+
+const BEANS_DB=[
+  {id:'b1',name:'Antimaceration Geisha by El Paraíso',roastery:'Father Coffee',origin:'Colombia',score:91,price:'R529',trend:'hot',trendPct:38,purchases30d:142,week:58,flavors:['Guava','Pineapple','Passionfruit','Cola'],methods:['V60','Chemex','Filter']},
+  {id:'b2',name:'Lalesa Black Honey, Yirgacheffe',roastery:'Father Coffee',origin:'Ethiopia',score:87.5,price:'R359',trend:'rising',trendPct:22,purchases30d:89,week:34,flavors:['Guava','Apricot','Toffee','Mango'],methods:['V60','AeroPress','Espresso']},
+  {id:'b3',name:'Ethiopia Single Origin',roastery:'Bean There',origin:'Ethiopia',score:86,price:'R155',trend:'hot',trendPct:15,purchases30d:210,week:72,flavors:['Jasmine','Bergamot','Lemon','Peach'],methods:['V60','Batch brew']},
+  {id:'b4',name:'K Organics Anaerobic Natural, Huye',roastery:'Father Coffee',origin:'Rwanda',score:93,price:'R1379',trend:'rising',trendPct:46,purchases30d:63,week:29,flavors:['Blueberry','Hibiscus','Dark chocolate'],methods:['V60','Cold brew']},
+  {id:'b5',name:'Rwanda Single Origin',roastery:'Bean There',origin:'Rwanda',score:86,price:'R150',trend:'new',trendPct:0,purchases30d:134,week:28,flavors:['Peach','Rose','Orange zest'],methods:['V60','AeroPress']},
+];
+
+// Mock photos using picsum (real images)
+const MOCK_PHOTOS=[
+  'https://picsum.photos/seed/coffee1/400/300',
+  'https://picsum.photos/seed/coffee2/400/300',
+  'https://picsum.photos/seed/coffee3/400/400',
+  'https://picsum.photos/seed/latte/400/300',
+  'https://picsum.photos/seed/espresso/400/300',
+];
+
+const MOCK_USERS=[
+  {id:'u1',name:'Sarah K.',handle:'@sarahbrews',avatar:'🌿',tier:'Palate Pro',followers:234,following:89,pts:2340,
+   currentDrinking:{bean:'Kenya Thiriku AA',cafe:'Rosetta Roastery',method:'V60',since:'12 min ago'},
+   profile:{acidity:9,body:4,sweetness:6,fruitiness:9,intensity:4.5,aroma:8.5,finish:7}},
+  {id:'u2',name:'Marco D.',handle:'@marcosips',avatar:'☕',tier:'Brew Guide',followers:120,following:67,pts:780,
+   currentDrinking:{bean:'Firefly Natural Colombia',cafe:'Father Kramerville',method:'Espresso',since:'4 min ago'},
+   profile:{acidity:6,body:7,sweetness:8,fruitiness:6,intensity:6.5,aroma:6.5,finish:7.5}},
+  {id:'u3',name:'James O.',handle:'@jamesbarista',avatar:'⚡',tier:'Craft Authority',followers:891,following:234,pts:6700,isBarista:true,cafe:'Rosetta',
+   currentDrinking:{bean:'Antimaceration Geisha',cafe:'Father Kramerville',method:'Filter',since:'Just now'},
+   profile:{acidity:8,body:5,sweetness:7,fruitiness:8.5,intensity:5,aroma:8,finish:8}},
+  {id:'u4',name:'Priya N.',handle:'@priyatastes',avatar:'🫖',tier:'Flavour Explorer',followers:45,following:56,pts:320,
+   currentDrinking:null,
+   profile:{acidity:7.5,body:5,sweetness:7.5,fruitiness:8,intensity:5,aroma:7,finish:7}},
+];
+
+const INITIAL_FEED=[
+  {id:'f1',userId:'u1',type:'photo',bean:'Kenya Thiriku AA',cafe:'Rosetta Roastery',method:'V60',
+   text:'The Thiriku is back and it is absolutely glowing this season. Look at that clarity in the cup.',rating:5,
+   photos:['https://picsum.photos/seed/keniav60/400/300','https://picsum.photos/seed/cupjhb/400/300'],
+   flavors:['Blackcurrant','Peach'],upvotes:28,time:'2h ago',pts:25,liked:false},
+  {id:'f2',userId:'u2',type:'video',bean:'Firefly Natural Colombia',cafe:'Father Kramerville',
+   text:'James pulled this Firefly as espresso today and I genuinely could not believe what I was tasting. Strawberry jam on a coffee. Wild.',
+   thumbnail:'https://picsum.photos/seed/espressoshot/400/250',rating:5,flavors:['Strawberry','Dark chocolate'],upvotes:14,time:'4h ago',pts:10,liked:false},
+  {id:'f3',userId:'u3',type:'review',bean:'Antimaceration Geisha by El Paraíso',cafe:'Father Kramerville',
+   text:'Score 91 and it earns every point. The guava and cola notes are unlike anything else. Vacuum fermentation at its absolute peak.',
+   rating:5,flavors:['Guava','Cola','Passionfruit'],upvotes:47,time:'6h ago',pts:25,liked:false},
+  {id:'f4',userId:'u4',type:'poll',bean:'',cafe:'',
+   text:'What is your go-to brew method for washed Ethiopians?',
+   pollOptions:[{text:'V60',votes:34},{text:'AeroPress',votes:18},{text:'Chemex',votes:12},{text:'Espresso',votes:8}],
+   upvotes:12,time:'8h ago',pts:5,liked:false,votedOption:null},
+  {id:'f5',userId:'u1',type:'currently_drinking',bean:'Ethiopia Gedeb Washed',cafe:'Truth. Coffee CPT',method:'Siphon',
+   text:'On a Cape Town trip and Truth. never disappoints. The siphon brewing ritual is something special.',
+   photos:['https://picsum.photos/seed/truthcoffee/400/300'],upvotes:19,time:'1d ago',pts:10,liked:false},
+  {id:'f6',userId:'u2',type:'photo',bean:'Lalesa Black Honey',cafe:'Father Kramerville',
+   text:'Three photos of the same cup because I could not stop staring at the colour.',
+   photos:['https://picsum.photos/seed/lalesa1/400/300','https://picsum.photos/seed/lalesa2/400/300','https://picsum.photos/seed/lalesa3/400/300'],
+   rating:4,flavors:['Guava','Apricot'],upvotes:11,time:'2d ago',pts:25,liked:false},
+];
+
+// ═══════════════════ UTILS ══════════════════════════════════════
+function Toast({msg,onDone}){useEffect(()=>{const t=setTimeout(onDone,2600);return()=>clearTimeout(t)},[]);return <div className="toast">{msg}</div>}
+
+function Stars({val,onChange,size=28}){const[h,sh]=useState(0);return(
+  <div style={{display:'flex',gap:4}}>
+    {[1,2,3,4,5].map(n=><span key={n} className={`star${n<=(h||val)?' lit':''}`} style={{fontSize:size,color:n<=(h||val)?'var(--gld)':'rgba(30,15,7,.12)'}}
+      onClick={()=>onChange&&onChange(n)} onMouseEnter={()=>onChange&&sh(n)} onMouseLeave={()=>sh(0)}>★</span>)}
+  </div>
+);}
+
+function RadarChart({data,size=160}){
+  const cx=size/2,cy=size/2,r=size*.37;
+  const axes=['Acidity','Fruitiness','Sweetness','Body','Aroma','Finish'];
+  const vals=axes.map(a=>data[a.toLowerCase()]||0);
+  const pt=(f,i)=>{const a=(i/axes.length)*2*Math.PI-Math.PI/2;return[cx+Math.cos(a)*f,cy+Math.sin(a)*f]};
+  const poly=v=>axes.map((_,i)=>pt((v[i]/10)*r,i).join(',')).join(' ');
+  return(<svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+    {[.25,.5,.75,1].map((f,ri)=><polygon key={ri} points={axes.map((_,i)=>pt(f*r,i).join(',')).join(' ')} fill="none" stroke="rgba(30,15,7,.07)" strokeWidth=".8"/>)}
+    {axes.map((_,i)=>{const[x,y]=pt(r,i);return<line key={i} x1={cx} y1={cy} x2={x.toFixed(1)} y2={y.toFixed(1)} stroke="rgba(30,15,7,.07)" strokeWidth=".8"/>})}
+    <polygon points={poly(vals)} fill="rgba(109,140,106,.15)" stroke="var(--sge)" strokeWidth="2"/>
+    {vals.map((v,i)=>{const[x,y]=pt((v/10)*r,i);return<circle key={i} cx={x.toFixed(1)} cy={y.toFixed(1)} r="4" fill="var(--sge)"/>})}
+    {axes.map((lbl,i)=>{const[x,y]=pt(r+17,i);return<text key={i} x={x.toFixed(1)} y={y.toFixed(1)} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="var(--ink3)" fontFamily="Inter,sans-serif">{lbl}</text>})}
+  </svg>);
+}
+
+// ═══════════════════ LEAFLET MAP ════════════════════════════════
+function LiveMap({height=210}){
+  const mapRef=useRef(null);
+  const mapInstance=useRef(null);
+  const[status,setStatus]=useState('Tap 📍 Locate me to find cafés near you');
+  const[locating,setLocating]=useState(false);
+  const[located,setLocated]=useState(false);
+  const nominatimRef=useRef([]);
+
+  useEffect(()=>{
+    if(mapInstance.current||!window.L||!mapRef.current)return;
+    const L=window.L;
+    const map=L.map(mapRef.current,{zoomControl:false,scrollWheelZoom:true,tap:false}).setView([-26.2041,28.0473],12);
+    mapInstance.current=map;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19
+    }).addTo(map);
+
+    L.control.zoom({position:'bottomright'}).addTo(map);
+
+    CAFES_DB.forEach(cafe=>{
+      const hasHot=cafe.hotBeans.length>0;
+      const icon=L.divIcon({
+        html:`<div style="background:${cafe.color};border-radius:12px;padding:6px 10px;color:#fff;font-size:11px;font-weight:600;font-family:Inter,sans-serif;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;gap:4px">${cafe.emoji} ${cafe.short}${hasHot?'<span style="background:linear-gradient(135deg,#FF4500,#FF8C00);border-radius:999px;padding:1px 5px;font-size:9px;margin-left:2px">🔥</span>':''}</div>`,
+        className:'',iconAnchor:[0,36]
+      });
+      const m=L.marker([cafe.lat,cafe.lng],{icon}).addTo(map);
+      const beanList=cafe.hotBeans.slice(0,2).map(b=>`<div style="font-size:11px;color:#333;padding:3px 0;border-bottom:1px solid #f5f5f5">${b}</div>`).join('');
+      m.bindPopup(`
+        <div style="font-family:Inter,sans-serif;min-width:210px;padding:0">
+          <div style="background:${cafe.color};padding:10px 13px;border-radius:14px 14px 0 0">
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px">${cafe.emoji} ${cafe.name}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.55)">${cafe.area} · ${cafe.hours}</div>
+          </div>
+          <div style="padding:10px 13px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
+              <span style="color:${cafe.isOpen?'#22c55e':'#ef4444'};font-size:11px;font-weight:500">● ${cafe.isOpen?'Open now':'Closed'}</span>
+              <span style="background:#F5E4C0;color:#7A5010;font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;margin-left:auto">★ ${cafe.rating}</span>
+            </div>
+            ${cafe.hotBeans.length?`<div style="font-size:9px;font-weight:700;color:#7A5010;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">🔥 Currently serving</div>${beanList}`:''}
+            <div style="display:flex;gap:6px;margin-top:9px">
+              <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(cafe.addr)}','_blank')" style="flex:2;padding:8px;border-radius:8px;background:#1E0F07;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">📍 Directions</button>
+              <button onclick="this.closest('.leaflet-popup').querySelector('.leaflet-popup-close-button').click()" style="flex:1;padding:8px;border-radius:8px;background:#F2EDE3;color:#1E0F07;border:.5px solid rgba(30,15,7,.15);font-size:11px;cursor:pointer;font-family:inherit">✕</button>
+            </div>
+          </div>
+        </div>`,{maxWidth:280,className:'brewly-popup',closeButton:false,offset:[0,-36]});
+    });
+
+    setTimeout(()=>map.invalidateSize(),100);
+  },[]);
+
+  const handleLocate=()=>{
+    if(!navigator.geolocation){setStatus('Geolocation not available in this browser');return;}
+    setLocating(true);setStatus('Finding your location…');
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const{latitude:lat,longitude:lng}=pos.coords;
+      const L=window.L;const map=mapInstance.current;
+      if(!map||!L)return;
+      setLocating(false);setLocated(true);
+
+      const userIcon=L.divIcon({
+        html:`<div style="width:18px;height:18px;border-radius:50%;background:#4285F4;border:3px solid #fff;box-shadow:0 2px 8px rgba(66,133,244,.6)"></div>`,
+        className:'',iconAnchor:[9,9]
+      });
+      L.marker([lat,lng],{icon:userIcon,zIndexOffset:1000}).addTo(map).bindPopup('<div style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:4px 8px">📍 You are here</div>').openPopup();
+      map.setView([lat,lng],14,{animate:true});
+      setStatus(`📍 Located · Showing Brewly cafés + fetching real coffee shops…`);
+
+      // Fetch real coffee shops via Nominatim
+      const url=`https://nominatim.openstreetmap.org/search?q=coffee+shop&format=json&limit=25&bounded=1&viewbox=${lng-.06},${lat+.06},${lng+.06},${lat-.06}&addressdetails=1`;
+      fetch(url,{headers:{'User-Agent':'Brewly-App/1.0 (brewly.app)'}})
+        .then(r=>r.json())
+        .then(data=>{
+          nominatimRef.current.forEach(m=>map.removeLayer(m));nominatimRef.current=[];
+          const valid=data.filter(p=>p.lat&&p.lon);
+          valid.forEach(place=>{
+            const nm=L.divIcon({
+              html:`<div style="background:#fff;border:2px solid #C8974A;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:600;font-family:Inter,sans-serif;color:#1E0F07;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap">☕ ${place.display_name.split(',')[0]}</div>`,
+              className:'',iconAnchor:[0,24]
+            });
+            const nm_marker=L.marker([+place.lat,+place.lon],{icon:nm}).addTo(map);
+            nm_marker.bindPopup(`<div style="font-family:Inter,sans-serif;padding:10px 13px;min-width:190px">
+              <div style="font-size:12px;font-weight:600;color:#1E0F07;margin-bottom:4px">☕ ${place.display_name.split(',')[0]}</div>
+              <div style="font-size:10px;color:#6B4030;margin-bottom:8px">${place.display_name.split(',').slice(1,3).join(',').trim()}</div>
+              <span style="background:#E2F0DF;color:#6D8C6A;font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px">OSM verified</span>
+              <div style="margin-top:8px"><button onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(place.display_name)}','_blank')" style="width:100%;padding:8px;border-radius:8px;background:#1E0F07;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">📍 Get directions</button></div>
+            </div>`,{maxWidth:260,closeButton:false});
+            nominatimRef.current.push(nm_marker);
+          });
+          setStatus(`📍 ${valid.length} real coffee shops found near you + ${CAFES_DB.length} Brewly partner cafés`);
+        })
+        .catch(()=>setStatus(`📍 Located · Showing ${CAFES_DB.length} Brewly partner cafés`));
+    },err=>{
+      setLocating(false);
+      const m={1:'Location access denied — showing JHB',2:'Could not get location',3:'Location timed out'};
+      setStatus(m[err.code]||'Location error');
+    },{timeout:12000,enableHighAccuracy:true});
+  };
+
+  return(
+    <div style={{position:'relative'}}>
+      <div ref={mapRef} id="brewly-map" style={{height,width:'100%',borderRadius:14,overflow:'hidden'}}/>
+      {/* Locate button overlay */}
+      <button onClick={handleLocate} disabled={locating} style={{position:'absolute',top:10,right:10,zIndex:999,background:located?'var(--sge)':locating?'rgba(250,248,243,.9)':'rgba(250,248,243,.97)',border:`.5px solid ${located?'var(--sge)':locating?'var(--gld)':'var(--b2)'}`,borderRadius:10,padding:'8px 13px',fontSize:12,fontWeight:600,fontFamily:'Inter,sans-serif',cursor:locating?'default':'pointer',color:located?'#fff':'var(--ink)',boxShadow:'var(--sh2)',backdropFilter:'blur(8px)'}}>
+        {locating?<span className="spin">⟳</span>:located?'✓ Located':'📍 Locate me'}
+      </button>
+      {/* Status */}
+      <div style={{position:'absolute',bottom:10,left:10,right:54,zIndex:999,background:'rgba(250,248,243,.94)',backdropFilter:'blur(8px)',border:'.5px solid var(--b2)',borderRadius:8,padding:'6px 10px',fontSize:10,color:'var(--ink3)',fontWeight:500,boxShadow:'var(--sh)',lineHeight:1.4}}>
+        {status}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════ CURRENTLY DRINKING ═════════════════════════
+function CurrentlyDrinkingBar({user,onSet,onClear}){
+  if(!user.currentDrinking)return(
+    <div className="cd-bar" onClick={onSet} style={{display:'flex',alignItems:'center',gap:12}}>
+      <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(200,151,74,.15)',border:'1px dashed rgba(200,151,74,.4)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:18}}>☕</div>
+      <div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:3}}>What are you drinking right now?</div>
+        <div style={{fontSize:13,color:'rgba(255,255,255,.6)',fontWeight:500}}>Tap to set your Currently Drinking</div>
+      </div>
+      <span style={{marginLeft:'auto',fontSize:18,opacity:.4}}>+</span>
+    </div>
+  );
+  const cd=user.currentDrinking;
+  return(
+    <div className="cd-bar" style={{display:'flex',alignItems:'center',gap:12}}>
+      <div style={{flex:1,minWidth:0}}>
+        <div className="cd-live"><div className="cd-dot"/>Currently drinking</div>
+        <div className="cd-name">{cd.bean}</div>
+        <div className="cd-sub">{cd.cafe} · {cd.method} · {cd.since}</div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:10}}>
+        <div className="cd-wave">
+          {[1,2,3,4,5].map(i=><div key={i} className="cd-wave-bar" style={{height:`${[40,60,100,70,45][i-1]}%`}}/>)}
+        </div>
+        <button onClick={e=>{e.stopPropagation();onClear();}} style={{background:'rgba(255,255,255,.08)',border:'.5px solid rgba(255,255,255,.15)',borderRadius:'50%',width:24,height:24,color:'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:'inherit',fontSize:12,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+function SetCurrentlyDrinkingModal({onSet,onClose}){
+  const[bean,sBean]=useState('');
+  const[cafe,sCafe]=useState('');
+  const[method,sMethod]=useState('');
+  const METHODS=['Espresso','V60','AeroPress','Filter','Cold brew','Milk drink','Chemex','Siphon'];
+  return(
+    <div className="mb" onClick={onClose}>
+      <div className="ms" onClick={e=>e.stopPropagation()}>
+        <div className="mh"/>
+        <div className="serif" style={{fontSize:22,color:'var(--ink)',marginBottom:4}}>Currently Drinking</div>
+        <div style={{fontSize:13,color:'var(--ink3)',marginBottom:20,lineHeight:1.6}}>Share what you're drinking right now — your followers can see it live on your profile, like a "Now Playing" for coffee.</div>
+        <div style={{marginBottom:14}}><label className="lbl mb8" style={{display:'block',marginBottom:6}}>Bean / Coffee</label>
+          <div style={{display:'flex',gap:7,overflowX:'auto',scrollbarWidth:'none',marginBottom:8,paddingBottom:2}}>
+            {BEANS_DB.map(b=><div key={b.id} onMouseDown={()=>sBean(b.name)} style={{background:'#fff',border:`.5px solid ${bean===b.name?'var(--sge)':'var(--b)'}`,borderRadius:10,padding:'8px 12px',minWidth:145,flexShrink:0,cursor:'pointer'}}>
+              <div style={{fontSize:10,color:'var(--ink3)',marginBottom:2}}>{b.roastery}</div>
+              <div style={{fontSize:12,fontWeight:500,color:'var(--ink)',lineHeight:1.2}}>{b.name}</div>
+            </div>)}
+          </div>
+          <input className="inp" placeholder="Or type any coffee name…" value={bean} onChange={e=>sBean(e.target.value)} style={{fontSize:13}}/>
+        </div>
+        <div style={{marginBottom:14}}><label className="lbl mb8" style={{display:'block',marginBottom:6}}>Coffee shop</label>
+          <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:7}}>
+            {CAFES_DB.slice(0,4).map(c=><button key={c.id} onClick={()=>sCafe(c.name)} style={{padding:'7px 12px',borderRadius:999,border:`.5px solid ${cafe===c.name?'var(--ink)':'var(--b2)'}`,background:cafe===c.name?'var(--ink)':'var(--cr2)',color:cafe===c.name?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{c.short}</button>)}
+          </div>
+          <input className="inp" placeholder="Or type café name" value={cafe} onChange={e=>sCafe(e.target.value)} style={{fontSize:13}}/>
+        </div>
+        <div style={{marginBottom:20}}><label className="lbl mb8" style={{display:'block',marginBottom:6}}>Brew method</label>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
+            {METHODS.map(m=><button key={m} onClick={()=>sMethod(m)} style={{padding:'9px 4px',borderRadius:9,border:`.5px solid ${method===m?'var(--ink)':'var(--b2)'}`,background:method===m?'var(--ink)':'var(--cr2)',color:method===m?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:500,cursor:'pointer'}}>{m}</button>)}
+          </div>
+        </div>
+        <button className="btn btn-dk" onClick={()=>{if(!bean)return;onSet({bean,cafe,method,since:'Just now'});}}>
+          ☕ Start drinking
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════ FEED ITEMS ═════════════════════════════════
+function FeedItem({item,author,onUpvote,onLightbox,toast}){
+  const[votedPoll,setVotedPoll]=useState(item.votedOption);
+  const typeColor={'photo':'var(--sge)','video':'var(--rst2)','review':'var(--gld)','poll':'var(--pop,#7C3AED)','currently_drinking':'var(--gld)'};
+  const typeLabel={'photo':'📸 Photo log','video':'🎬 Video','review':'⭐ Review','poll':'📊 Poll','currently_drinking':'☕ Currently drinking'};
+
+  return(
+    <div className="feed-item">
+      <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+        <div style={{width:36,height:36,borderRadius:'50%',background:author.isBarista?'#2A1810':'var(--cr3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,fontFamily:'Cormorant Garamond,serif'}}>{author.avatar}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4,flexWrap:'wrap'}}>
+            <span style={{fontSize:13,fontWeight:600,color:'var(--ink)'}}>{author.name}</span>
+            {author.currentDrinking&&<span style={{fontSize:9,color:'var(--gld)',fontWeight:700,display:'flex',alignItems:'center',gap:3}}>
+              <span style={{width:5,height:5,borderRadius:'50%',background:'var(--gld)',animation:'pulse 1.5s infinite',display:'inline-block'}}/>live
+            </span>}
+            <span style={{fontSize:10,color:'var(--ink3)'}}>{item.time}</span>
+            <span style={{marginLeft:'auto',fontSize:10,color:typeColor[item.type]||'var(--ink3)',fontWeight:600}}>{typeLabel[item.type]}</span>
+          </div>
+
+          {/* BEAN INFO */}
+          {item.bean&&<div style={{fontSize:11,color:'var(--ink3)',marginBottom:5,display:'flex',gap:5,flexWrap:'wrap'}}>
+            <span style={{fontWeight:500,color:'var(--ink)'}}>{item.bean}</span>
+            {item.cafe&&<><span>·</span><span>{item.cafe}</span></>}
+            {item.method&&<><span>·</span><span>{item.method}</span></>}
+          </div>}
+
+          {/* RATING */}
+          {item.rating&&<div style={{fontSize:11,color:'var(--gld)',marginBottom:4}}>{'★'.repeat(item.rating)}</div>}
+
+          {/* TEXT */}
+          <div style={{fontSize:13,color:'var(--ink)',lineHeight:1.55,marginBottom:6}}>{item.text}</div>
+
+          {/* PHOTOS */}
+          {item.photos&&item.photos.length===1&&<img src={item.photos[0]} className="feed-img" alt="coffee" onClick={()=>onLightbox(item.photos[0])} onError={e=>{e.target.style.display='none'}}/>}
+          {item.photos&&item.photos.length===2&&<div className="img-grid g2">
+            {item.photos.map((p,i)=><img key={i} src={p} alt="" onClick={()=>onLightbox(p)} onError={e=>{e.target.style.display='none'}}/>)}
+          </div>}
+          {item.photos&&item.photos.length>=3&&<div className="img-grid g3">
+            <img src={item.photos[0]} className="g-main" alt="" onClick={()=>onLightbox(item.photos[0])} onError={e=>{e.target.style.display='none'}} style={{gridRow:'1/3',height:228,objectFit:'cover',width:'100%',borderRadius:10,cursor:'pointer'}}/>
+            <img src={item.photos[1]} alt="" onClick={()=>onLightbox(item.photos[1])} onError={e=>{e.target.style.display='none'}} style={{height:110,objectFit:'cover',width:'100%',borderRadius:10,cursor:'pointer'}}/>
+            <img src={item.photos[2]} alt="" onClick={()=>onLightbox(item.photos[2])} onError={e=>{e.target.style.display='none'}} style={{height:110,objectFit:'cover',width:'100%',borderRadius:10,cursor:'pointer'}}/>
+          </div>}
+
+          {/* VIDEO (thumbnail + play) */}
+          {item.type==='video'&&item.thumbnail&&<div style={{position:'relative',cursor:'pointer',marginTop:8}} onClick={()=>toast('Video playback coming soon!')}>
+            <img src={item.thumbnail} alt="" style={{width:'100%',borderRadius:12,objectFit:'cover',maxHeight:200,display:'block'}} onError={e=>{e.target.style.display='none'}}/>
+            <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,.25)',borderRadius:12}}>
+              <div style={{width:48,height:48,borderRadius:'50%',background:'rgba(255,255,255,.9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>▶</div>
+            </div>
+            <div className="live-tag" style={{position:'absolute',top:8,left:8}}><div className="live-dot"/>Video</div>
+          </div>}
+
+          {/* POLL */}
+          {item.type==='poll'&&item.pollOptions&&<div style={{marginTop:8}}>
+            {item.pollOptions.map((opt,i)=>{
+              const total=item.pollOptions.reduce((s,o)=>s+o.votes,0);
+              const pct=Math.round((opt.votes/total)*100);
+              const voted=votedPoll===i;
+              return(<div key={i} className="poll-opt" onClick={()=>{if(!votedPoll&&votedPoll!==0){setVotedPoll(i);toast('Vote recorded!');}}}>
+                <div className="poll-fill" style={{width:votedPoll!=null?`${pct}%`:'0%'}}/>
+                <div style={{position:'relative',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{fontSize:13,fontWeight:voted?600:400,color:'var(--ink)'}}>{voted?'✓ ':''}{opt.text}</span>
+                  {votedPoll!=null&&<span style={{fontSize:12,fontWeight:600,color:'var(--gld)'}}>{pct}%</span>}
+                </div>
+              </div>);
+            })}
+            {votedPoll==null&&<div style={{fontSize:11,color:'var(--ink3)',textAlign:'center',marginTop:4}}>Tap to vote · {item.pollOptions.reduce((s,o)=>s+o.votes,0)} votes so far</div>}
+          </div>}
+
+          {/* FLAVORS */}
+          {item.flavors&&<div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:6}}>
+            {item.flavors.map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:0}}>{f}</span>)}
+          </div>}
+
+          {/* FOOTER */}
+          <div style={{display:'flex',alignItems:'center',gap:10,marginTop:7}}>
+            <button onClick={onUpvote} style={{display:'inline-flex',alignItems:'center',gap:3,fontSize:11,cursor:'pointer',color:item.liked?'var(--gld)':'var(--ink3)',background:item.liked?'var(--gld3)':'none',border:'none',padding:'3px 7px',borderRadius:6,fontFamily:'Inter,sans-serif',transition:'all .15s'}}>▲ {item.upvotes+(item.liked?1:0)}</button>
+            <button onClick={()=>toast('Comment feature coming soon!')} style={{fontSize:11,cursor:'pointer',color:'var(--ink3)',background:'none',border:'none',fontFamily:'Inter,sans-serif'}}>💬 Reply</button>
+            <button onClick={()=>toast('Shared!')} style={{fontSize:11,cursor:'pointer',color:'var(--ink3)',background:'none',border:'none',fontFamily:'Inter,sans-serif'}}>↗ Share</button>
+            <span className="pts-badge" style={{fontSize:9,padding:'2px 7px',marginLeft:'auto'}}>+{item.pts} pts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════ LOG COFFEE ═════════════════════════════════
+function LogCoffee({user,onBack,onDone,toast}){
+  const[step,ss]=useState(1);
+  const[form,sf]=useState({beanName:'',cafeName:'',roasteryName:'',method:'',rating:0,liked:null,review:'',kudos:'',photos:[],postType:'review',pollQ:'',pollOpts:['','']});
+  const set=(k,v)=>sf(f=>({...f,[k]:v}));
+  const METHODS=['Espresso','V60','AeroPress','Milk drink','Cold brew','French press','Batch brew','Chemex'];
+  const POST_TYPES=[['review','⭐ Review'],['photo','📸 Photo post'],['currently_drinking','☕ Currently drinking']];
+
+  // Photo handling
+  const fileRef=useRef(null);
+  const handleFiles=files=>{
+    const arr=[...files].slice(0,6);
+    const readers=arr.map(f=>new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(f);}));
+    Promise.all(readers).then(imgs=>set('photos',[...form.photos,...imgs].slice(0,6)));
+  };
+
+  return(<div className="fi">
+    <div style={{display:'flex',alignItems:'center',gap:11,padding:'16px 16px 12px'}}>
+      <button className="bbl" onClick={onBack}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div className="serif" style={{fontSize:18,color:'var(--ink)'}}>Log a Coffee</div>
+      <div style={{marginLeft:'auto',display:'flex',gap:4}}>{[1,2,3].map(i=><div key={i} style={{height:3,width:step===i?18:5,borderRadius:2,background:i<=step?'var(--ink)':'var(--b2)',transition:'all .3s'}}/>)}</div>
+    </div>
+
+    <div className="px16" style={{paddingBottom:20}}>
+      {step===1&&<>
+        {/* POST TYPE */}
+        <div style={{marginBottom:14}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Post type</label>
+          <div style={{display:'flex',gap:7}}>
+            {POST_TYPES.map(([v,lbl])=><button key={v} onClick={()=>set('postType',v)} style={{flex:1,padding:'9px 4px',borderRadius:10,border:`.5px solid ${form.postType===v?'var(--ink)':'var(--b2)'}`,background:form.postType===v?'var(--ink)':'var(--cr2)',color:form.postType===v?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:500,cursor:'pointer'}}>{lbl}</button>)}
+          </div>
+        </div>
+
+        {/* BEAN */}
+        <div style={{marginBottom:12}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>☕ Bean</label>
+          <div style={{display:'flex',gap:8,overflowX:'auto',scrollbarWidth:'none',marginBottom:8,paddingBottom:2}}>
+            {BEANS_DB.map(b=><div key={b.id} onMouseDown={()=>{set('beanName',b.name);set('roasteryName',b.roastery);toast(`Loaded: ${b.name}`);}} style={{background:'#fff',border:`.5px solid ${form.beanName===b.name?'var(--sge)':'var(--b)'}`,borderRadius:10,padding:'9px 12px',minWidth:148,flexShrink:0,cursor:'pointer'}}>
+              <div style={{fontSize:10,color:'var(--ink3)',marginBottom:2}}>{b.roastery}</div>
+              <div style={{fontSize:11,fontWeight:500,color:'var(--ink)',lineHeight:1.2,marginBottom:3}}>{b.name}</div>
+              <div style={{fontSize:9,color:'var(--sge)',fontWeight:500}}>{b.flavors.slice(0,2).join(', ')}</div>
+            </div>)}
+          </div>
+          <input className="inp" placeholder="Or type bean name…" value={form.beanName} onChange={e=>set('beanName',e.target.value)} style={{fontSize:13}}/>
+        </div>
+
+        {/* ROASTERY */}
+        <div style={{marginBottom:12}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>🏭 Roastery</label>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:6}}>
+            {['Father Coffee','Bean There','Rosetta','Truth.','Tribe'].map(r=><button key={r} onClick={()=>set('roasteryName',r)} style={{padding:'7px 11px',borderRadius:999,border:`.5px solid ${form.roasteryName===r?'var(--ink)':'var(--b2)'}`,background:form.roasteryName===r?'var(--ink)':'var(--cr2)',color:form.roasteryName===r?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{r}</button>)}
+          </div>
+        </div>
+
+        {/* CAFÉ */}
+        <div style={{marginBottom:12}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>🏪 Café</label>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:6}}>
+            {CAFES_DB.slice(0,4).map(c=><button key={c.id} onClick={()=>set('cafeName',c.name)} style={{padding:'7px 11px',borderRadius:999,border:`.5px solid ${form.cafeName===c.name?'var(--ink)':'var(--b2)'}`,background:form.cafeName===c.name?'var(--ink)':'var(--cr2)',color:form.cafeName===c.name?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:11,cursor:'pointer'}}>{c.short}</button>)}
+          </div>
+          <input className="inp" placeholder="Or type café name" value={form.cafeName} onChange={e=>set('cafeName',e.target.value)} style={{fontSize:13}}/>
+        </div>
+
+        {/* METHOD */}
+        <div style={{marginBottom:12}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Brew method</label>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5}}>
+            {METHODS.map(m=><button key={m} onClick={()=>set('method',m)} style={{padding:'9px 4px',borderRadius:9,border:`.5px solid ${form.method===m?'var(--ink)':'var(--b2)'}`,background:form.method===m?'var(--ink)':'var(--cr2)',color:form.method===m?'#fff':'var(--ink)',fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:500,cursor:'pointer'}}>{m}</button>)}
+          </div>
+        </div>
+        <button className="btn btn-dk" onClick={()=>ss(2)}>Next: Photos & notes →</button>
+      </>}
+
+      {step===2&&<>
+        {/* PHOTO UPLOAD */}
+        <div style={{marginBottom:14}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>📸 Add photos or video</label>
+          <div className="photo-upload-zone" onClick={()=>fileRef.current?.click()} onDragOver={e=>{e.preventDefault();e.currentTarget.classList.add('drag');}} onDragLeave={e=>e.currentTarget.classList.remove('drag')} onDrop={e=>{e.preventDefault();e.currentTarget.classList.remove('drag');handleFiles(e.dataTransfer.files);}}>
+            <div style={{fontSize:28,marginBottom:8}}>📷</div>
+            <div style={{fontSize:13,fontWeight:500,color:'var(--ink)',marginBottom:3}}>Tap to add photos</div>
+            <div style={{fontSize:11,color:'var(--ink3)'}}>Or drag & drop · Up to 6 photos / videos · JPG, PNG, MP4</div>
+            <input ref={fileRef} type="file" accept="image/*,video/*" multiple style={{display:'none'}} onChange={e=>handleFiles(e.target.files)}/>
+          </div>
+          {form.photos.length>0&&<div className="photo-preview-grid">
+            {form.photos.map((p,i)=><div key={i} className="photo-preview">
+              <img src={p} alt=""/>
+              <button className="photo-del" onClick={()=>set('photos',form.photos.filter((_,j)=>j!==i))}>✕</button>
+            </div>)}
+          </div>}
+        </div>
+
+        {/* RATING */}
+        <div style={{marginBottom:14}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Overall rating</label>
+          <Stars val={form.rating} onChange={v=>set('rating',v)}/>
+        </div>
+
+        {/* REVIEW */}
+        <div style={{marginBottom:14}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Write a review — +25 pts (optional)</label>
+          <textarea className="ta" placeholder="Share your thoughts with the community…" value={form.review} onChange={e=>set('review',e.target.value)}/>
+        </div>
+
+        {/* KUDOS */}
+        <div style={{marginBottom:16}}>
+          <label className="lbl mb8" style={{display:'block',marginBottom:6}}>Kudos to barista — +5 pts (optional)</label>
+          <input className="inp" placeholder="e.g. James pulled a perfect shot today" value={form.kudos} onChange={e=>set('kudos',e.target.value)} style={{fontSize:13}}/>
+        </div>
+
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-out" style={{flex:1}} onClick={()=>ss(1)}>← Back</button>
+          <button className="btn btn-dk" style={{flex:2}} onClick={()=>{const pts=10+(form.review?25:0)+(form.kudos?5:0)+(form.photos.length>0?5:0);onDone({...form,id:Date.now(),date:new Date().toLocaleDateString('en-ZA',{day:'numeric',month:'short'}),pts});}}>
+            ☕ {form.photos.length>0?`Post with ${form.photos.length} photo${form.photos.length>1?'s':''}` : 'Save to profile'}
+          </button>
+        </div>
+      </>}
+    </div>
+  </div>);
+}
+
+// ═══════════════════ HOME ═══════════════════════════════════════
+function Home({user,feed,following,setFeed,onLog,onGoTo,toast,setUser}){
+  const[feedTab,sft]=useState('foryou');
+  const[showCDModal,sShowCDModal]=useState(false);
+  const[lightboxSrc,sLB]=useState(null);
+  const hour=new Date().getHours();
+  const greet=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+  const displayFeed=feedTab==='following'?feed.filter(f=>following.includes(f.userId)):feedTab==='photos'?feed.filter(f=>f.type==='photo'||f.type==='video'):feedTab==='polls'?feed.filter(f=>f.type==='poll'):feed;
+
+  const handleUpvote=id=>{setFeed(f=>f.map(item=>item.id===id?{...item,liked:!item.liked}:item));toast('Upvoted! ▲');};
+
+  return(<div className="fi">
+    {/* HERO */}
+    <div style={{background:'var(--ink)',padding:'22px 20px 24px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div className="serif" style={{fontSize:24,letterSpacing:'-.3px'}}>Brew<em style={{fontStyle:'italic',color:'var(--gld2)'}}>ly</em></div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <span className="pts-badge">✦ {user.points} pts</span>
+          <div onClick={()=>onGoTo('discover')} style={{cursor:'pointer',display:'flex'}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        </div>
+      </div>
+      <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:3}}>{greet}, {user.name} ☀️</div>
+    </div>
+
+    {/* CURRENTLY DRINKING */}
+    <CurrentlyDrinkingBar user={user} onSet={()=>sShowCDModal(true)} onClear={()=>setUser(u=>({...u,currentDrinking:null}))}/>
+
+    {/* QUICK STATS */}
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,padding:'12px 16px 0'}}>
+      {[[user.logs,'logged'],[user.cafes,'cafés'],[user.points,'pts']].map(([n,l])=>(
+        <div key={l} style={{background:'#fff',borderRadius:12,padding:'11px',textAlign:'center',border:'.5px solid var(--b)'}}>
+          <span className="serif" style={{fontSize:22,fontWeight:500,color:'var(--ink)',display:'block'}}>{n}</span>
+          <span style={{fontSize:9,color:'var(--ink3)'}}>{l}</span>
+        </div>
+      ))}
+    </div>
+    <div style={{padding:'12px 16px 0'}}><button className="btn btn-dk" onClick={onLog}>+ Log / Post a Coffee</button></div>
+
+    {/* LIVE NOW — friends currently drinking */}
+    {MOCK_USERS.filter(u=>u.id!=='you'&&u.currentDrinking).length>0&&<div style={{padding:'14px 16px 0'}}>
+      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
+        <span style={{width:6,height:6,borderRadius:'50%',background:'var(--gld)',animation:'pulse 1.5s infinite',display:'inline-block'}}/>
+        <span style={{fontSize:11,fontWeight:600,color:'var(--ink)',letterSpacing:.2}}>Live now — friends drinking</span>
+      </div>
+      <div style={{display:'flex',gap:8,overflowX:'auto',scrollbarWidth:'none',paddingBottom:2}}>
+        {MOCK_USERS.filter(u=>u.currentDrinking).map(u=>(
+          <div key={u.id} style={{background:'#fff',borderRadius:12,border:'1px solid rgba(200,151,74,.25)',padding:'10px 12px',minWidth:160,flexShrink:0,boxShadow:'var(--sh)',position:'relative'}}>
+            <div style={{position:'absolute',top:8,right:8,width:7,height:7,borderRadius:'50%',background:'var(--gld)',animation:'pulse 1.5s infinite'}}/>
+            <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:5}}>
+              <div style={{width:28,height:28,borderRadius:'50%',background:'var(--cr3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>{u.avatar}</div>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--ink)'}}>{u.name.split(' ')[0]}</span>
+            </div>
+            <div className="serif" style={{fontSize:13,color:'var(--ink)',lineHeight:1.2,marginBottom:2}}>{u.currentDrinking.bean.slice(0,22)}{u.currentDrinking.bean.length>22?'…':''}</div>
+            <div style={{fontSize:10,color:'var(--ink3)'}}>{u.currentDrinking.cafe} · {u.currentDrinking.since}</div>
+          </div>
+        ))}
+      </div>
+    </div>}
+
+    {/* FEED TABS */}
+    <div className="ftab-row" style={{marginTop:14}}>
+      {[['foryou','For You'],['following','Following'],['photos','📸 Photos'],['polls','📊 Polls']].map(([id,lb])=>(
+        <div key={id} className={`ftab${feedTab===id?' on':''}`} onClick={()=>sft(id)}>{lb}</div>
+      ))}
+    </div>
+
+    {feedTab==='following'&&following.length===0&&<div style={{textAlign:'center',padding:'28px 20px',background:'#fff'}}>
+      <div style={{fontSize:32,marginBottom:8}}>👥</div>
+      <div className="serif" style={{fontSize:17,color:'var(--ink)',marginBottom:6}}>Follow people to see their activity</div>
+      <button className="btn btn-out" style={{width:'auto',padding:'9px 18px',display:'inline-flex',fontSize:12}} onClick={()=>onGoTo('social')}>Explore community →</button>
+    </div>}
+
+    {displayFeed.map(item=>{
+      const author=MOCK_USERS.find(u=>u.id===item.userId)||{name:'Someone',avatar:'☕'};
+      return <FeedItem key={item.id} item={item} author={author} onUpvote={()=>handleUpvote(item.id)} onLightbox={sLB} toast={toast}/>;
+    })}
+    <div style={{height:20}}/>
+
+    {showCDModal&&<SetCurrentlyDrinkingModal onSet={cd=>{setUser(u=>({...u,currentDrinking:cd}));sShowCDModal(false);toast('Now sharing: Currently Drinking ☕');}} onClose={()=>sShowCDModal(false)}/>}
+    {lightboxSrc&&<div className="lightbox" onClick={()=>sLB(null)}><img src={lightboxSrc} alt=""/><div style={{position:'absolute',top:16,right:16,color:'#fff',fontSize:24,cursor:'pointer'}} onClick={()=>sLB(null)}>✕</div></div>}
+  </div>);
+}
+
+// ═══════════════════ DISCOVER (MAP) ═════════════════════════════
+function Discover({user,toast}){
+  const[tab,sTab]=useState('map');
+  const TABS=[['map','🗺 Live Map'],['cafes','Cafés'],['trending','🔥 Hot']];
+  return(<div className="fi">
+    <div style={{padding:'20px 16px 10px'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div className="serif" style={{fontSize:24,color:'var(--ink)'}}>Discover</div>
+        <span style={{fontSize:11,color:'var(--ink3)'}}>📍 {user.city}</span>
+      </div>
+    </div>
+    <div className="ftab-row">
+      {TABS.map(([id,lb])=><div key={id} className={`ftab${tab===id?' on':''}`} onClick={()=>sTab(id)}>{lb}</div>)}
+    </div>
+
+    {tab==='map'&&<div style={{padding:'12px 16px'}}>
+      <LiveMap height={300}/>
+      <div style={{background:'var(--cr2)',borderRadius:'0 0 12px 12px',padding:'8px 12px',fontSize:11,color:'var(--ink3)',display:'flex',justifyContent:'space-between',marginTop:-4,border:'.5px solid var(--b)',borderTop:'none'}}>
+        <span>🔥 Branded café pins · ☕ Real OSM coffee shops</span>
+        <span style={{color:'var(--sge)',fontWeight:500}}>Leaflet + OSM</span>
+      </div>
+      {/* HOT nearby */}
+      <div className="lbl" style={{marginTop:14,marginBottom:8}}>🔥 Hot at these cafés</div>
+      {BEANS_DB.filter(b=>b.trend==='hot').slice(0,2).map(b=>(
+        <div key={b.id} style={{background:'#fff',borderRadius:12,border:'.5px solid var(--b)',padding:'12px 14px',marginBottom:8,display:'flex',gap:12,alignItems:'center'}}>
+          <div style={{flex:1}}>
+            <div className="serif" style={{fontSize:14,color:'var(--ink)',marginBottom:2}}>{b.name}</div>
+            <div style={{fontSize:11,color:'var(--ink3)',marginBottom:5}}>{b.roastery} · {b.purchases30d} orders / 30 days</div>
+            <div style={{display:'flex',gap:5}}>{b.flavors.slice(0,3).map(f=><span key={f} className="chip sge" style={{fontSize:10,padding:'2px 7px',margin:0}}>{f}</span>)}</div>
+          </div>
+          <div>
+            <span className="hot-badge">🔥 Hot</span>
+            <div className="serif" style={{fontSize:20,color:'var(--sge)',textAlign:'right',marginTop:4}}>{b.score}</div>
+          </div>
+        </div>
+      ))}
+    </div>}
+
+    {tab==='cafes'&&<div className="p16">
+      {CAFES_DB.map(c=>(
+        <div key={c.id} style={{background:'#fff',borderRadius:14,border:'.5px solid var(--b)',overflow:'hidden',marginBottom:12,boxShadow:'var(--sh)'}}>
+          <div style={{height:90,background:c.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:40,position:'relative'}}>
+            {c.emoji}
+            <div style={{position:'absolute',top:10,left:10,background:c.isOpen?'rgba(34,197,94,.85)':'rgba(239,68,68,.85)',color:'#fff',fontSize:10,fontWeight:600,padding:'3px 9px',borderRadius:999}}>
+              {c.isOpen?'● Open':'● Closed'}
+            </div>
+            <div style={{position:'absolute',top:10,right:10,background:'rgba(250,248,243,.93)',borderRadius:999,padding:'3px 9px',fontSize:11,fontWeight:600,color:'var(--gld)'}}>★ {c.rating}</div>
+          </div>
+          <div style={{padding:'12px 14px'}}>
+            <div className="serif" style={{fontSize:17,color:'var(--ink)',marginBottom:2}}>{c.name}</div>
+            <div style={{fontSize:11,color:'var(--ink3)',marginBottom:8}}>{c.area} · {c.hours}</div>
+            {c.hotBeans.length>0&&<div style={{background:'var(--gld3)',borderRadius:8,padding:'7px 10px',marginBottom:8,borderLeft:'2px solid var(--gld)'}}>
+              <div style={{fontSize:9,fontWeight:700,color:'#7A5010',marginBottom:4,textTransform:'uppercase',letterSpacing:.8}}>🔥 Currently serving</div>
+              {c.hotBeans.map(b=><div key={b} style={{fontSize:11,color:'var(--ink)',fontWeight:500,marginBottom:2}}>{b}</div>)}
+            </div>}
+            <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
+              {c.specialties.map(s=><span key={s} className="chip sge" style={{fontSize:10,padding:'2px 8px',margin:0}}>{s}</span>)}
+            </div>
+            <button onClick={()=>{window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(c.addr)}`,'_blank');}} className="btn btn-dk" style={{padding:'10px'}}>📍 Get Directions</button>
+          </div>
+        </div>
+      ))}
+    </div>}
+
+    {tab==='trending'&&<div className="p16">
+      <div className="lbl mb8">🔥 Ordered most this week</div>
+      {BEANS_DB.sort((a,b)=>b.week-a.week).map((b,i)=>(
+        <div key={b.id} style={{background:'#fff',borderRadius:13,border:'.5px solid var(--b)',padding:'12px 14px',marginBottom:9,boxShadow:'var(--sh)'}}>
+          <div style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:8}}>
+            <span className="serif" style={{fontSize:18,color:'var(--gld)',fontWeight:600,flexShrink:0}}>#{i+1}</span>
+            <div style={{flex:1}}>
+              <div className="serif" style={{fontSize:14,color:'var(--ink)',marginBottom:2,lineHeight:1.2}}>{b.name}</div>
+              <div style={{fontSize:11,color:'var(--ink3)',marginBottom:5}}>{b.roastery} · {b.origin}</div>
+              <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                {b.trend==='hot'&&<span className="hot-badge">🔥 Hot · +{b.trendPct}%</span>}
+                {b.trend==='rising'&&<span className="rise-badge">📈 Rising · +{b.trendPct}%</span>}
+                {b.trend==='new'&&<span style={{background:'var(--sge3)',color:'var(--sge)',fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:999}}>✨ New</span>}
+              </div>
+            </div>
+            <div style={{textAlign:'right',flexShrink:0}}>
+              <div className="serif" style={{fontSize:20,color:'var(--sge)'}}>{b.score}</div>
+              <div style={{fontSize:9,color:'var(--ink3)'}}>score</div>
+            </div>
+          </div>
+          <div style={{background:'var(--cr2)',borderRadius:8,padding:'8px 10px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--ink3)',marginBottom:5}}>
+              <span>📊 {b.purchases30d} orders last 30 days</span>
+              <span style={{color:'var(--gld)',fontWeight:600}}>+{b.week} this week</span>
+            </div>
+            <div style={{display:'flex',gap:1.5,alignItems:'flex-end',height:24}}>
+              {[35,42,38,55,48,62,58,70,75,80,88,b.week].map((v,idx)=>(
+                <div key={idx} style={{flex:1,background:idx===11?'var(--sge)':'rgba(109,140,106,.2)',borderRadius:2,height:`${Math.round((v/b.week)*100)}%`,minHeight:2}}/>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:8}}>
+            {b.flavors.map(f=><span key={f} className="chip gld" style={{fontSize:10,padding:'2px 7px',margin:0}}>{f}</span>)}
+          </div>
+        </div>
+      ))}
+    </div>}
+    <div style={{height:20}}/>
+  </div>);
+}
+
+// ═══════════════════ PROFILE ════════════════════════════════════
+function Profile({user,setUser,logs,following,onGoTo,toast}){
+  const[showQR,sqr]=useState(false);
+  const[showCDModal,sShowCDModal]=useState(false);
+  const[uploadedAvatar,sAvatar]=useState(null);
+  const avatarRef=useRef(null);
+  const TIERS=['Coffee Curious','Flavour Explorer','Brew Guide','Palate Pro','Craft Authority'];
+  const TIER_PTS=[0,100,500,2000,5000];
+  const ti=TIERS.indexOf(user.tier);
+  const pct=Math.min(100,Math.round((user.points/(TIER_PTS[ti+1]||5000))*100));
+
+  return(<div className="fi">
+    <div style={{background:'var(--ink)',padding:'24px 20px 30px',color:'#fff'}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:14}}>
+        {/* Avatar with upload */}
+        <div style={{position:'relative',cursor:'pointer'}} onClick={()=>avatarRef.current?.click()}>
+          <div style={{width:56,height:56,borderRadius:'50%',background:'rgba(200,151,74,.15)',border:'2px solid rgba(200,151,74,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:uploadedAvatar?0:24,overflow:'hidden'}}>
+            {uploadedAvatar?<img src={uploadedAvatar} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>:'☕'}
+          </div>
+          <div style={{position:'absolute',bottom:0,right:0,width:18,height:18,borderRadius:'50%',background:'var(--gld)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,color:'#fff',fontWeight:700}}>+</div>
+          <input ref={avatarRef} type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>sAvatar(ev.target.result);r.readAsDataURL(f);toast('Profile photo updated! ✓');}}/>
+        </div>
+        <button onClick={()=>onGoTo('barista')} style={{background:'rgba(255,255,255,.08)',border:'.5px solid rgba(255,255,255,.15)',borderRadius:9,padding:'8px 12px',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:500,cursor:'pointer'}}>Barista Portal →</button>
+      </div>
+      <div className="serif" style={{fontSize:22,color:'#fff',marginBottom:4}}>{user.name}'s Profile</div>
+      <div style={{display:'inline-flex',alignItems:'center',gap:5,background:'rgba(109,140,106,.2)',border:'.5px solid var(--sge2)',color:'var(--sge2)',fontSize:10,letterSpacing:.8,textTransform:'uppercase',padding:'4px 11px',borderRadius:999,marginBottom:10,fontWeight:600}}>✦ {user.tier}</div>
+      <div style={{display:'flex',marginBottom:14}}>
+        {[[user.logs,'logs'],[following.length,'following'],[user.points,'pts']].map(([n,l])=>(
+          <div key={l} style={{flex:1,textAlign:'center',borderRight:'.5px solid rgba(255,255,255,.1)',padding:'5px 4px'}}>
+            <div className="serif" style={{fontSize:20,color:'#fff'}}>{n}</div>
+            <div style={{fontSize:9,color:'rgba(255,255,255,.4)'}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:10,display:'flex',justifyContent:'space-between',color:'rgba(255,255,255,.3)',marginBottom:5}}>
+        <span>{user.tier}</span><span>{(TIER_PTS[ti+1]||5000)-user.points} pts to {TIERS[ti+1]||'max'}</span>
+      </div>
+      <div style={{height:3,background:'rgba(255,255,255,.08)',borderRadius:2,overflow:'hidden'}}>
+        <div style={{height:'100%',width:`${pct}%`,background:'var(--sge2)',borderRadius:2}}/>
+      </div>
+    </div>
+
+    {/* CURRENTLY DRINKING on profile */}
+    <div style={{margin:'0 16px 14px',marginTop:-16}}>
+      <div className="card" style={{padding:'13px 15px',borderLeft:'3px solid var(--gld)',cursor:'pointer'}} onClick={()=>sShowCDModal(true)}>
+        {user.currentDrinking
+          ?<><div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+              <span style={{width:6,height:6,borderRadius:'50%',background:'var(--gld)',animation:'pulse 1.5s infinite',display:'inline-block'}}/>
+              <span style={{fontSize:10,fontWeight:700,color:'var(--gld)',letterSpacing:.8,textTransform:'uppercase'}}>Currently drinking</span>
+            </div>
+            <div className="serif" style={{fontSize:16,color:'var(--ink)',marginBottom:2}}>{user.currentDrinking.bean}</div>
+            <div style={{fontSize:11,color:'var(--ink3)'}}>{user.currentDrinking.cafe} · {user.currentDrinking.method} · {user.currentDrinking.since}</div>
+          </>
+          :<div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div style={{fontSize:20}}>☕</div>
+            <div style={{fontSize:13,color:'var(--ink3)'}}>Tap to set your <strong style={{color:'var(--ink)'}}>Currently Drinking</strong></div>
+          </div>
+        }
+      </div>
+    </div>
+
+    {/* QR CARD */}
+    <div onClick={()=>sqr(true)} style={{background:'linear-gradient(135deg,#2A1508,#4A2C14)',borderRadius:14,padding:17,color:'#fff',margin:'0 16px 14px',cursor:'pointer',position:'relative',overflow:'hidden',boxShadow:'var(--sh2)'}}>
+      <div style={{position:'absolute',top:-25,right:-25,width:100,height:100,borderRadius:'50%',background:'rgba(200,151,74,.1)'}}/>
+      <div style={{position:'relative',zIndex:1}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:11}}>
+          <div className="serif" style={{fontSize:17}}>Brew<em style={{fontStyle:'italic',color:'var(--gld2)'}}>ly</em> Card</div>
+          <span className="pts-badge">{user.points} pts</span>
+        </div>
+        <div className="serif" style={{fontSize:14,marginBottom:2}}>{user.name}</div>
+        <div style={{fontSize:9,color:'rgba(255,255,255,.4)',marginBottom:10,letterSpacing:.5}}>{user.tier.toUpperCase()} · MEMBER</div>
+        <div style={{fontSize:9,color:'rgba(255,255,255,.4)',marginBottom:4}}>Next free coffee in {Math.max(0,500-user.points)} pts</div>
+        <div style={{height:3,background:'rgba(255,255,255,.12)',borderRadius:2,overflow:'hidden'}}><div style={{height:'100%',width:`${Math.min(100,(user.points/500)*100)}%`,background:'var(--gld)',borderRadius:2}}/></div>
+        <div style={{fontSize:9,color:'rgba(255,255,255,.22)',marginTop:7}}>Tap · Flavour web · History · Recommended brews · QR for barista</div>
+      </div>
+    </div>
+
+    <div className="px16">
+      {/* RADAR */}
+      <div className="lbl mb8">Flavour radar</div>
+      <div className="card" style={{padding:16,marginBottom:14}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <RadarChart data={user.profile} size={155}/>
+          <div style={{flex:1}}>
+            {[['Acidity',user.profile.acidity,'#6D8C6A'],['Fruitiness',user.profile.fruitiness,'#D4614A'],['Sweetness',user.profile.sweetness,'#C8974A'],['Body',user.profile.body,'#8B6355'],['Aroma',user.profile.aroma,'#9DB89A'],['Finish',user.profile.finish,'#B8A898']].map(([l,v,c])=>(
+              <div key={l} style={{marginBottom:8}}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--ink3)',marginBottom:3}}><span>{l}</span><span style={{fontWeight:600,color:'var(--ink)'}}>{v.toFixed(1)}</span></div>
+                <div style={{height:4,background:'var(--b)',borderRadius:2,overflow:'hidden'}}><div style={{height:'100%',width:`${v*10}%`,background:c,borderRadius:2}}/></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Preferences */}
+      <div className="lbl mb8">You enjoy</div>
+      <div style={{marginBottom:12}}>{user.preferences.likes.map(l=><span key={l} className="chip sge">{l}</span>)}</div>
+      <div className="lbl mb8">You avoid</div>
+      <div style={{marginBottom:14}}>{user.preferences.avoids.map(a=><span key={a} className="chip rst">{a}</span>)}</div>
+
+      {/* Recent logs */}
+      {logs.length>0&&<>
+        <div className="lbl mb8">Recent logs</div>
+        <div className="card" style={{marginBottom:16}}>
+          {logs.slice(-4).reverse().map((l,i,arr)=>(
+            <div key={l.id||i} style={{padding:'10px 14px',borderBottom:i<arr.length-1?'.5px solid var(--b)':'none',display:'flex',alignItems:'center',gap:10}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div className="serif" style={{fontSize:13,color:'var(--ink)',marginBottom:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.beanName||'Coffee'}</div>
+                <div style={{fontSize:10,color:'var(--ink3)'}}>{l.cafeName} · {l.method} · {l.date}</div>
+              </div>
+              {l.rating>0&&<span style={{fontSize:10,color:'var(--gld)',flexShrink:0}}>{'★'.repeat(l.rating)}</span>}
+              {l.photos?.length>0&&<span style={{fontSize:10,color:'var(--sge)',flexShrink:0}}>📸 {l.photos.length}</span>}
+            </div>
+          ))}
+        </div>
+      </>}
+    </div>
+
+    {showCDModal&&<SetCurrentlyDrinkingModal onSet={cd=>{setUser(u=>({...u,currentDrinking:cd}));sShowCDModal(false);toast('Now sharing: Currently Drinking ☕');}} onClose={()=>sShowCDModal(false)}/>}
+    <div style={{height:20}}/>
+  </div>);
+}
+
+// ═══════════════════ SOCIAL ═════════════════════════════════════
+function Social({user,following,onFollow,toast}){
+  const[tab,st]=useState('discover');
+  const[search,ss]=useState('');
+  const all=MOCK_USERS.filter(u=>u.id!=='you');
+  const shown=all.filter(p=>!search||(p.name+p.handle+(p.bio||'')).toLowerCase().includes(search.toLowerCase()));
+  const Row=({p})=>{const isF=following.includes(p.id);return(
+    <div style={{display:'flex',alignItems:'center',gap:11,padding:'12px 16px',borderBottom:'.5px solid var(--b)',background:'#fff'}}>
+      <div style={{position:'relative'}}>
+        <div style={{width:44,height:44,borderRadius:'50%',background:p.isBarista?'#2A1810':'var(--cr3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>{p.avatar}</div>
+        {p.currentDrinking&&<div style={{position:'absolute',bottom:0,right:0,width:10,height:10,borderRadius:'50%',background:'var(--gld)',border:'2px solid #fff',animation:'pulse 1.5s infinite'}}/>}
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
+          <span style={{fontSize:13,fontWeight:600,color:'var(--ink)'}}>{p.name}</span>
+          {p.isBarista&&<span style={{fontSize:9,background:'var(--gld3)',color:'var(--ink2)',padding:'2px 6px',borderRadius:999,fontWeight:600}}>Barista</span>}
+        </div>
+        <div style={{fontSize:10,color:'var(--ink3)',marginBottom:p.currentDrinking?3:0}}>{p.handle} · {p.tier}</div>
+        {p.currentDrinking&&<div style={{fontSize:11,color:'var(--gld)',fontWeight:500,display:'flex',alignItems:'center',gap:4}}>
+          <span style={{width:5,height:5,borderRadius:'50%',background:'var(--gld)',animation:'pulse 1.5s infinite',display:'inline-block'}}/>
+          {p.currentDrinking.bean.slice(0,28)}{p.currentDrinking.bean.length>28?'…':''}
+        </div>}
+      </div>
+      <button onClick={()=>{onFollow(p.id);toast(isF?`Unfollowed ${p.name}`:`Following ${p.name}!`);}} style={{padding:'7px 14px',borderRadius:999,fontSize:11,fontWeight:600,cursor:'pointer',border:`.5px solid ${isF?'var(--b2)':'var(--ink)'}`,background:isF?'var(--cr2)':'var(--ink)',color:isF?'var(--ink)':'#fff',fontFamily:'Inter,sans-serif',whiteSpace:'nowrap'}}>{isF?'Following':'Follow'}</button>
+    </div>
+  );};
+  return(<div className="fi">
+    <div style={{padding:'20px 16px 14px',background:'var(--ink)'}}>
+      <div className="serif" style={{fontSize:24,color:'#fff',marginBottom:12}}>Community</div>
+      <input style={{width:'100%',padding:'10px 14px',borderRadius:10,border:'.5px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.07)',fontSize:13,color:'#fff',outline:'none',fontFamily:'Inter,sans-serif'}} placeholder="Search people, baristas…" value={search} onChange={e=>ss(e.target.value)}/>
+      <div style={{display:'flex',gap:7,marginTop:12}}>
+        {[['discover','Discover'],['following',`Following (${following.length})`],['live','🟡 Live now']].map(([id,lb])=>(
+          <button key={id} onClick={()=>st(id)} style={{padding:'7px 12px',borderRadius:999,border:'none',fontSize:11,fontWeight:600,cursor:'pointer',background:tab===id?'#fff':'rgba(255,255,255,.1)',color:tab===id?'var(--ink)':'rgba(255,255,255,.6)',fontFamily:'Inter,sans-serif'}}>{lb}</button>
+        ))}
+      </div>
+    </div>
+    {tab==='live'&&<div>
+      <div style={{padding:'12px 16px 8px'}}>
+        <div className="lbl mb8">Friends drinking right now</div>
+      </div>
+      {MOCK_USERS.filter(u=>u.currentDrinking).map(u=>(
+        <div key={u.id} style={{background:'#fff',borderRadius:14,border:'1px solid rgba(200,151,74,.25)',padding:'13px 15px',margin:'0 16px 10px',boxShadow:'var(--sh)'}}>
+          <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:8}}>
+            <div style={{width:38,height:38,borderRadius:'50%',background:'var(--cr3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,position:'relative'}}>
+              {u.avatar}
+              <div style={{position:'absolute',bottom:0,right:0,width:10,height:10,borderRadius:'50%',background:'var(--gld)',border:'2px solid #fff',animation:'pulse 1.5s infinite'}}/>
+            </div>
+            <div><div style={{fontSize:13,fontWeight:600,color:'var(--ink)'}}>{u.name}</div><div style={{fontSize:10,color:'var(--ink3)'}}>{u.tier}</div></div>
+            <div className="cd-wave" style={{marginLeft:'auto'}}>{[1,2,3,4,5].map(i=><div key={i} className="cd-wave-bar" style={{height:`${[40,60,100,70,45][i-1]}%`}}/>)}</div>
+          </div>
+          <div className="serif" style={{fontSize:15,color:'var(--ink)',marginBottom:2}}>{u.currentDrinking.bean}</div>
+          <div style={{fontSize:11,color:'var(--ink3)'}}>{u.currentDrinking.cafe} · {u.currentDrinking.method} · {u.currentDrinking.since}</div>
+        </div>
+      ))}
+    </div>}
+    <div className="card" style={{margin:'12px 16px'}}>
+      {tab==='discover'&&shown.map(p=><Row key={p.id} p={p}/>)}
+      {tab==='following'&&(following.length===0?<div style={{padding:'28px 16px',textAlign:'center',fontSize:13,color:'var(--ink3)'}}>Follow people from the Discover tab</div>:MOCK_USERS.filter(u=>following.includes(u.id)).map(p=><Row key={p.id} p={p}/>))}
+    </div>
+    <div style={{height:24}}/>
+  </div>);
+}
+
+// ═══════════════════ ROOT APP ════════════════════════════════════
+function App(){
+  const[user,setUser]=useState({
+    name:'Alex',city:'Johannesburg',tier:'Flavour Explorer',
+    logs:23,cafes:8,avgRating:4.1,points:340,
+    profile:{acidity:7.8,body:4.2,sweetness:6.5,fruitiness:8.5,intensity:4.8,aroma:7.5,finish:7},
+    preferences:{likes:['Bright acidity','Fruity','African origins','Light roasts'],avoids:['Heavy bitterness','Dark roasts']},
+    currentDrinking:null,
+  });
+  const[feed,setFeed]=useState(INITIAL_FEED);
+  const[following,sf]=useState(['u1','u3']);
+  const[logs,sl]=useState([{id:1,beanName:'Lalesa Black Honey',cafeName:'Father Kramerville',method:'V60',rating:5,date:'2 Apr'},{id:2,beanName:'Ethiopia Single Origin',cafeName:'Bean There JHB',method:'V60',rating:4,date:'28 Mar'}]);
+  const[screen,ss]=useState('home');
+  const[logging,sl2]=useState(false);
+  const[success,ssu]=useState(null);
+  const[toast,st]=useState('');
+
+  const showToast=m=>st(m);
+  const handleFollow=id=>sf(f=>f.includes(id)?f.filter(x=>x!==id):[...f,id]);
+  const handleLogDone=log=>{
+    sl(l=>[...l,log]);
+    setUser(u=>({...u,logs:u.logs+1,points:u.points+log.pts}));
+    // Add to feed if has review or photos
+    if(log.review||log.photos?.length>0){
+      setFeed(f=>[{id:Date.now(),userId:'you',type:log.photos?.length>0?'photo':'review',bean:log.beanName,cafe:log.cafeName,method:log.method,text:log.review||`Logged a ${log.beanName} at ${log.cafeName}.`,rating:log.rating,photos:log.photos?.length>0?log.photos:undefined,flavors:[],upvotes:0,time:'Just now',pts:log.pts,liked:false},...f]);
+    }
+    sl2(false);ssu(log);
+  };
+
+  const NAV=[
+    {id:'home',lbl:'Home',ic:()=><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>},
+    {id:'discover',lbl:'Discover',ic:()=><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>},
+    {id:'log',lbl:'Post',ic:()=><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>},
+    {id:'social',lbl:'Social',ic:()=><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>},
+    {id:'profile',lbl:'Profile',ic:()=><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>},
+  ];
+
+  const hideNav=logging||!!success;
+  if(success)return<div className="shell"><div className="view"><div className="fi" style={{background:'var(--ink)',minHeight:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 28px',textAlign:'center',color:'#fff'}}>
+    <div style={{width:80,height:80,borderRadius:'50%',background:'rgba(109,140,106,.2)',border:'1px solid var(--sge2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:36,marginBottom:20}}>☕</div>
+    <div className="serif" style={{fontSize:26,marginBottom:6}}>Posted!</div>
+    <div style={{fontSize:13,color:'rgba(255,255,255,.45)',marginBottom:14}}>{success.beanName} at {success.cafeName}</div>
+    <div style={{display:'flex',gap:8,justifyContent:'center',marginBottom:20,flexWrap:'wrap'}}>
+      <span className="pts-badge">+{success.pts} pts</span>
+      {success.photos?.length>0&&<span style={{fontSize:11,background:'rgba(109,140,106,.25)',color:'var(--sge2)',padding:'4px 10px',borderRadius:999}}>📸 {success.photos.length} photo{success.photos.length>1?'s':''} shared</span>}
+      {success.review&&<span style={{fontSize:11,background:'rgba(200,151,74,.2)',color:'var(--gld2)',padding:'4px 10px',borderRadius:999}}>Review published ✓</span>}
+    </div>
+    <button onClick={()=>{ssu(null);ss('home');}} style={{background:'var(--gld)',color:'#fff',border:'none',borderRadius:10,padding:'13px',fontSize:14,fontWeight:500,cursor:'pointer',width:'100%',fontFamily:'Inter,sans-serif'}}>Back to Home</button>
+  </div></div></div>;
+
+  return(<div className="shell">
+    <div className="view">
+      {logging?<LogCoffee user={user} onBack={()=>sl2(false)} onDone={handleLogDone} toast={showToast}/>:
+       screen==='home'?<Home user={user} feed={feed} following={following} setFeed={setFeed} onLog={()=>sl2(true)} onGoTo={ss} toast={showToast} setUser={setUser}/>:
+       screen==='discover'?<Discover user={user} toast={showToast}/>:
+       screen==='social'?<Social user={user} following={following} onFollow={handleFollow} toast={showToast}/>:
+       screen==='profile'?<Profile user={user} setUser={setUser} logs={logs} following={following} onGoTo={ss} toast={showToast}/>:null}
+    </div>
+    {!hideNav&&<nav className="nav">
+      {NAV.map(({id,lbl,ic:Ic})=>(
+        <button key={id} className={`nb${screen===id?' on':''}`} onClick={()=>id==='log'?sl2(true):ss(id)}>
+          <Ic/>{lbl}<div className="pip"/>
+        </button>
+      ))}
+    </nav>}
+    {toast&&<Toast msg={toast} onDone={()=>st('')}/>}
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
