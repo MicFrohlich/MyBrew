@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import 'leaflet/dist/leaflet.css';
 import './styles/tokens.css';
 import './styles/global.css';
 import './lib/i18n.js';
