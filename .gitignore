@@ -12,9 +12,11 @@ Thumbs.db
 # Git worktrees
 .worktrees/
 
-# Node (if you scaffold later)
+# Node
 node_modules/
 dist/
 build/
 .env
 .env.local
+.vite
+coverage

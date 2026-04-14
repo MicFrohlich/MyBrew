@@ -1,0 +1,42 @@
+:root {
+  /* Espresso/cream palette (consumer + admin) */
+  --cr: #FAF8F3; --cr2: #F2EDE3; --cr3: #E8DFD0;
+  --ink: #1E0F07; --ink2: #3D2010; --ink3: #6B4030;
+  --gld: #C8974A; --gld2: #E8C07A; --gld3: #F5E4C0;
+  --sge: #6D8C6A; --sge2: #9DB89A; --sge3: #E2F0DF;
+  --rst: #A83820; --rst2: #D4614A; --rst3: #FCEAE6;
+  --pur: #7C3AED; --pur2: #EDE9FE;
+
+  /* Dark shell backgrounds (v9 palette) */
+  --bg: #0d0a07;
+  --s1: #181210; --s2: #231a13; --s3: #2e231a;
+  --br: rgba(255,255,255,0.07);
+  --cream: #f4e6cf;
+  --muted: #7a6a57;
+  --amber: #c8883c;
+  --amb2: #e8a855;
+  --terra: #c4614a;
+  --sage: #7d9a6e;
+  --sage2: #9db88d;
+
+  /* Borders / shadows */
+  --b: rgba(30,15,7,.08);
+  --b2: rgba(30,15,7,.14);
+  --b3: rgba(30,15,7,.22);
+  --sh: 0 1px 8px rgba(30,15,7,.06);
+  --sh2: 0 4px 20px rgba(30,15,7,.10);
+  --sh3: 0 12px 40px rgba(30,15,7,.15);
+
+  /* Barista green palette */
+  --ba: #0D2B12; --ba2: #1A4520; --ba3: #2A6B32;
+  --ba4: #3D9B48; --ba5: #5CC466;
+
+  /* Fonts */
+  --f-body: 'Inter', sans-serif;
+  --f-serif: 'Cormorant Garamond', serif;
+}
+
+:root[lang="he"] {
+  --f-body: 'Heebo', sans-serif;
+  --f-serif: 'Frank Ruhl Libre', serif;
+}

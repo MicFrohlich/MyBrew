@@ -1,0 +1,84 @@
+{
+  "app": { "name": "Brewly", "tagline": "Coffee Taste Intelligence" },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "continueWithGoogle": "Continue with Google",
+    "or": "or",
+    "iAmA": "I'm a",
+    "consumer": "Coffee lover",
+    "barista": "Barista",
+    "roaster": "Roaster",
+    "shop": "Shop owner",
+    "errorInvalid": "Invalid email or password"
+  },
+  "nav": {
+    "home": "Home", "map": "Map", "feed": "Feed", "beans": "Beans", "profile": "Profile",
+    "today": "Today", "scan": "Scan", "stats": "Stats",
+    "dashboard": "Dashboard", "roasteries": "Roasteries", "cafes": "Cafés", "users": "Users"
+  },
+  "onboard": {
+    "welcome": "Welcome to Brewly",
+    "step": "Step {{current}} of {{total}}",
+    "next": "Next", "back": "Back", "finish": "Finish",
+    "profile": {
+      "title": "Your profile",
+      "displayName": "Display name",
+      "chooseAvatar": "Choose avatar"
+    },
+    "level": {
+      "title": "How well do you know coffee?",
+      "casual": "Casual drinker",
+      "casualDesc": "I know what I like",
+      "exploring": "Exploring",
+      "exploringDesc": "I'm learning the language",
+      "expert": "Expert",
+      "expertDesc": "I cup, I taste, I score"
+    },
+    "taste": { "title": "Taste preferences", "flavorNotes": "Flavor notes you enjoy" },
+    "brewing": { "title": "How do you brew?", "selectAll": "Select all that apply" },
+    "location": { "title": "Where do you drink coffee?", "distance": "Max distance" }
+  },
+  "home": {
+    "greeting": "Good morning",
+    "forYou": "For you",
+    "nearby": "Nearby cafés",
+    "brewingNow": "Brewing now",
+    "match": "{{pct}}% match",
+    "seeAll": "See all"
+  },
+  "barista": {
+    "todayMenu": "Today's menu",
+    "addBean": "Add bean",
+    "scanCustomer": "Scan customer QR",
+    "scanHint": "Point the camera at a Brewly QR code",
+    "matchForThem": "Match for them",
+    "kudos": "Kudos",
+    "scansThisMonth": "Scans this month",
+    "avgMatch": "Avg match",
+    "repeatRate": "Repeat rate"
+  },
+  "admin": {
+    "totalUsers": "Total users",
+    "activeCafes": "Active cafés",
+    "menuUpdates": "Menu updates today",
+    "create": "Create", "edit": "Edit", "delete": "Delete", "cancel": "Cancel", "save": "Save",
+    "confirmDelete": "Are you sure? This cannot be undone.",
+    "promote": "Promote", "demote": "Demote"
+  },
+  "profile": {
+    "signOut": "Sign out",
+    "editTaste": "Edit taste profile",
+    "language": "Language",
+    "myQR": "My QR code",
+    "qrHint": "Show this to your barista for a personalised brew"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "offline": "You're offline — showing cached data"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "app": { "name": "ברוּלי", "tagline": "בינת טעם הקפה" },
+  "auth": {
+    "signIn": "התחברות",
+    "signUp": "הרשמה",
+    "email": "דוא״ל",
+    "password": "סיסמה",
+    "continueWithGoogle": "המשך עם Google",
+    "or": "או",
+    "iAmA": "אני",
+    "consumer": "אוהב/ת קפה",
+    "barista": "ברמן/ית",
+    "roaster": "קלאי/ת",
+    "shop": "בעל/ת בית קפה",
+    "errorInvalid": "דוא״ל או סיסמה שגויים"
+  },
+  "nav": {
+    "home": "בית", "map": "מפה", "feed": "עדכונים", "beans": "פולים", "profile": "פרופיל",
+    "today": "היום", "scan": "סריקה", "stats": "נתונים",
+    "dashboard": "לוח בקרה", "roasteries": "קלייה", "cafes": "בתי קפה", "users": "משתמשים"
+  },
+  "onboard": {
+    "welcome": "ברוכים הבאים לברוּלי",
+    "step": "שלב {{current}} מתוך {{total}}",
+    "next": "הבא", "back": "חזרה", "finish": "סיום",
+    "profile": {
+      "title": "הפרופיל שלך",
+      "displayName": "שם תצוגה",
+      "chooseAvatar": "בחר/י אווטאר"
+    },
+    "level": {
+      "title": "עד כמה את/ה מכיר/ה קפה?",
+      "casual": "שותה מזדמן/ת",
+      "casualDesc": "אני יודע/ת מה אני אוהב/ת",
+      "exploring": "מתעניין/ת",
+      "exploringDesc": "אני לומד/ת את השפה",
+      "expert": "מומחה/ית",
+      "expertDesc": "אני טועם/ת, מנקד/ת ומבין/ה"
+    },
+    "taste": { "title": "העדפות טעם", "flavorNotes": "ניחוחות שאת/ה אוהב/ת" },
+    "brewing": { "title": "איך את/ה מכין/ה קפה?", "selectAll": "בחר/י את כל מה שמתאים" },
+    "location": { "title": "איפה את/ה שותה קפה?", "distance": "מרחק מקסימלי" }
+  },
+  "home": {
+    "greeting": "בוקר טוב",
+    "forYou": "בשבילך",
+    "nearby": "בתי קפה בסביבה",
+    "brewingNow": "מכינים עכשיו",
+    "match": "{{pct}}% התאמה",
+    "seeAll": "הצג הכל"
+  },
+  "barista": {
+    "todayMenu": "תפריט היום",
+    "addBean": "הוסף פול",
+    "scanCustomer": "סרוק קוד לקוח",
+    "scanHint": "כוון/י את המצלמה אל קוד QR של ברוּלי",
+    "matchForThem": "ההתאמה עבורו/ה",
+    "kudos": "מחמאות",
+    "scansThisMonth": "סריקות החודש",
+    "avgMatch": "התאמה ממוצעת",
+    "repeatRate": "שיעור חזרה"
+  },
+  "admin": {
+    "totalUsers": "סה״כ משתמשים",
+    "activeCafes": "בתי קפה פעילים",
+    "menuUpdates": "עדכוני תפריט היום",
+    "create": "צור", "edit": "ערוך", "delete": "מחק", "cancel": "ביטול", "save": "שמירה",
+    "confirmDelete": "האם את/ה בטוח/ה? פעולה זו אינה הפיכה.",
+    "promote": "קדם", "demote": "הורד"
+  },
+  "profile": {
+    "signOut": "התנתקות",
+    "editTaste": "ערוך פרופיל טעם",
+    "language": "שפה",
+    "myQR": "קוד ה-QR שלי",
+    "qrHint": "הראה/י לברמן/ית להכנה מותאמת אישית"
+  },
+  "common": {
+    "loading": "טוען…",
+    "error": "משהו השתבש",
+    "retry": "נסה שוב",
+    "offline": "לא מקוון — מציג נתונים שמורים"
+  }
+}
