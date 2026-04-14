@@ -45,6 +45,7 @@ brewly/
 | Map | Leaflet (already in prototype) |
 | QR encode | qrcode.react |
 | QR decode | html5-qrcode (camera scan in Barista shell) |
+| i18n | react-i18next + i18next-browser-languagedetector |
 | Deploy | Vercel or Netlify (single app) |
 
 ---
@@ -174,7 +175,20 @@ social_posts      (id, user_id, content, cafe_id, bean_id, upvotes int, created_
 
 ---
 
-## 8. Out of Scope (for this demo)
+## 8. Localisation (English + Hebrew)
+
+- **Library:** `react-i18next` with `i18next-browser-languagedetector`
+- **Languages:** English (`en`, default) and Hebrew (`he`)
+- **Translation files:** `src/locales/en.json` and `src/locales/he.json` — flat namespaced keys (`home.title`, `auth.signIn`, etc.)
+- **RTL support:** `dir="rtl"` set on `<html>` when language is `he`; CSS uses logical properties (`margin-inline-start`, `padding-inline-end`, `inset-inline-start`) instead of `left`/`right` where direction matters
+- **Language switcher:** in Consumer Profile screen and Auth screen; persisted to `localStorage` via `i18next-browser-languagedetector`
+- **Fonts:** Hebrew uses `Heebo` (body) and `Frank Ruhl Libre` (serif headings) loaded from Google Fonts; English keeps existing `Inter` / `Cormorant Garamond`. Font family swaps via `:root[lang="he"]` selector.
+- **Date/number formatting:** use `Intl.DateTimeFormat` and `Intl.NumberFormat` with active locale
+- **Coverage:** all user-facing strings in shells, screens, onboarding, auth, and validation messages. Seed data (roastery names, bean names) stays in its original language — content is not translated, UI chrome is.
+
+---
+
+## 9. Out of Scope (for this demo)
 
 - Push notifications
 - Payments / ordering
