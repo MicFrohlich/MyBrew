@@ -9,6 +9,9 @@ Thumbs.db
 # Claude
 .claude/
 
+# Git worktrees
+.worktrees/
+
 # Node (if you scaffold later)
 node_modules/
 dist/
